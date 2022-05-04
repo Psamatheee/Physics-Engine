@@ -138,10 +138,11 @@ void set_new_speeds(Body& a, Body& b ){
     double initial_speed_b = dotProd(b.get_velocity(),centreLine);
 
     double e = std::min(a.get_e(), b.get_e());
-
+    //along the collision normal, the problem becomes 1D
     double final_speed_b = (-e*(initial_speed_b - initial_speed_a) + a.get_mass()*initial_speed_a + b.get_mass()*initial_speed_b) * 1/(1 + b.get_mass());
     double final_speed_a = e*(initial_speed_b - initial_speed_a) + final_speed_b;
 
+    //get full velocity by adding to the full velocity vector
     Vect a_along_n = scalar_mult(final_speed_a,centreLine);
     Vect final_velocity_a = a.get_velocity() +  a_along_n;
     Vect b_along_n = scalar_mult(final_speed_b,centreLine);
