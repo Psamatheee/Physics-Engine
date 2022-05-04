@@ -3,6 +3,23 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 
+struct point{
+    double x;
+    double y;
+};
+struct Rectangle{
+    point min;
+    point max;
+};
+
+bool does_rect_intersect(Rectangle& r1, Rectangle& r2){
+    // check if there is separation along the x-axis
+    if (r1.min.x > r2.max.x || r1.max.x < r2.min.x) return false;
+    // check if there is separation along the y-axis
+    if (r1.min.y > r2.max.y || r1.max.y < r2.min.y) return false;
+    return true;
+}
+
 
 class Vect{
 public:
