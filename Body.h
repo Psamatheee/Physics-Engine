@@ -51,31 +51,43 @@ private:
 
 class Body{
 public:
-    Body(Circle& circ, float restitution_const, float m, Vect vect) : circle{circ}, rest_const{restitution_const}, mass{m}{
+    Body(Circle circ, float restitution_const, float m, Vect vect) : circle{circ}, rest_const{restitution_const}, mass{m}{
         inv_mass= 1/mass;
         velocity.set_x(vect.get_x());
         velocity.set_y(vect.get_y());
+
     };
 
-    Circle& get_circle(){return circle;}
+    //getters
     float get_e(){return rest_const;}
-
     float get_mass(){return mass;}
     Vect& get_velocity(){return velocity;}
+    Vect& get_position(){return circle.get_centre();}
+
+    //setters
     void set_velocity(float x, float y){
         velocity.set_x(x);
         velocity.set_y(y);
     }
+    void set_position(Vect v){
+        circle.set_position(v.get_x(),v.get_y());
+    }
+    void set_position(float xx, float yy){
+        circle.set_position(xx,yy);
+    }
 
-
+    float get_radius(){return circle.get_radius();}
+    bool collides_wall(float h, float w);
     void increase_velocity(Vect v){
         velocity = velocity + v;
     }
-    void integrate(float dt);
+    void integrate(float dt, float w, float h);
+
+    friend bool does_intersect(Body& a, Body& b);
 
 
 private:
-    Circle& circle;
+    Circle circle;
     float rest_const;
     float mass;
     float inv_mass;

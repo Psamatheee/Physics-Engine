@@ -34,11 +34,12 @@ Vect scalar_mult(float num, Vect& v){
 //Circle Functions
 
 
-void Body::integrate(float dt) {
+void Body::integrate(float dt, float w, float h) {
     Vect dr{dt*velocity.get_x(), dt*velocity.get_y()};
-    float new_x = circle.get_centre().get_x() +dr.get_x();
-    float new_y = circle.get_centre().get_y() +dr.get_y();
-    circle.set_position(new_x , new_y);
+    float new_x = get_position().get_x() + dr.get_x();
+    float new_y = get_position().get_y() + dr.get_y();
+    set_position(new_x , new_y);
+    collides_wall(h,w);
 
 }
 
@@ -46,6 +47,25 @@ bool does_circle_intersect(Circle& c1, Circle& c2){
     //using sqr instead of sqrt as it's more efficient
     float distance_sqr = pow(c1.get_centre().get_x() - c2.get_centre().get_x(),2) + pow(c1.get_centre().get_y() - c2.get_centre().get_y(),2);
     return pow(c1.get_radius() + c2.get_radius(),2) >= distance_sqr;
+}
+
+bool does_intersect(Body& a, Body& b){
+    return does_circle_intersect(a.circle, b.circle);
+};
+
+bool Body::collides_wall(float h, float w){
+
+    if(get_position().get_y() + get_radius() >= h || get_position().get_y() - get_radius() <= 0  ) {
+        set_velocity(get_velocity().get_x(), get_velocity().get_y() * -1);
+        return true;
+    }
+
+    if(get_position().get_x() + get_radius() >= w || get_position().get_x() - get_radius() <= 0  ) {
+        set_velocity(get_velocity().get_x() * -1, get_velocity().get_y() );
+       return true;
+    }
+
+    return false;
 }
 
 
@@ -59,7 +79,7 @@ struct Manifold{
 
 void set_new_speeds(Body& a, Body& b ){
 
-    Vect centreLine = b.get_circle().get_centre() - a.get_circle().get_centre();
+    Vect centreLine = b.get_position() - a.get_position();
     centreLine.normalize();
 
     //these are the initial velocity compnenets along the centreline of the 2 circles
@@ -82,7 +102,7 @@ void set_new_speeds(Body& a, Body& b ){
 }
 
 bool collision(Manifold& m){
-    if (does_circle_intersect(m.a.get_circle(), m.b.get_circle())){
+    if (does_intersect(m.a,m.b)){
         set_new_speeds(m.a,m.b);
         return true;
     }else{

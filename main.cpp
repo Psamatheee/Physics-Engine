@@ -21,14 +21,32 @@ bool does_rect_intersect(Rectangle& r1, Rectangle& r2){
     return true;
 }
 
+class DrawBody : public sf::Drawable{
+public:
+   DrawBody(Body& bod, float height) : body(bod), h(height){}
+
+   void draw(sf::RenderTarget &target, sf::RenderStates states) const override{
+       sf::CircleShape circ{body.get_radius()};
+       circ.setOrigin(circ.getRadius(),circ.getRadius()*2);
+       circ.setFillColor(sf::Color::White);
+       circ.setPosition(body.get_position().get_x(), h-body.get_position().get_y());
+       target.draw(circ,states);
+   }
+private:
+    Body& body;
+   float h;
+
+};
+
 
 
 
 int main() {
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Simple Physics Engine");
-
-    Circle circ{100, Vect{100,100}};
-    Body body{circ, 0.4, 2, Vect{100,60}};
+    float h = sf::VideoMode::getDesktopMode().height;
+    float w = sf::VideoMode::getDesktopMode().width;
+    Circle circ{100, Vect{w/2,h/2}};
+    Body body{circ, 0.4, 2, Vect{1000, 1000}};
 
     sf::CircleShape shape{circ.get_radius()};
     shape.setFillColor(sf::Color::Black);
@@ -37,8 +55,10 @@ int main() {
     float dt = 1/fps;
     sf::Clock clock;
     float accum = 0;
-    Vect prev = circ.get_centre();
-    Vect curr = circ.get_centre();
+    Vect prev = Vect{body.get_position().get_x(), body.get_position().get_y()};
+    Vect curr = Vect{body.get_position().get_x(), body.get_position().get_y()};
+
+    DrawBody bod(body,h);
 
     while(window.isOpen()){
         sf::Event event;
@@ -56,17 +76,18 @@ int main() {
         //std::cout<<accum<<"\n";
 
         while(accum > dt){
-            body.integrate(dt);
+            body.integrate(dt,w, h);
             accum-=dt;
         }
 
         float a = accum/dt;
         Vect temp{prev.get_x()*a + curr.get_x()*(1-a),prev.get_y()*a + curr.get_y()*(1-a)};
-        prev = body.get_circle().get_centre();
+        prev = Vect{body.get_position().get_x(), body.get_position().get_y()};
         curr = temp;
-        shape.setPosition(curr.get_x(), curr.get_y());
-        std::cout << shape.getPosition().x << " " << shape.getPosition().y << "\n";
-        window.draw(shape);
+        body.set_position(temp);
+
+
+        window.draw(bod);
         window.display();
 
 
