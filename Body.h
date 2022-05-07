@@ -25,6 +25,7 @@ public:
 
     friend Vect operator-(Vect& v1, Vect& v2);
     friend Vect operator+(Vect& v1, Vect& v2);
+    friend Vect operator*(float num, Vect& v);
 
 private:
     float x;
@@ -63,6 +64,8 @@ public:
     float get_mass(){return mass;}
     Vect& get_velocity(){return velocity;}
     Vect& get_position(){return circle.get_centre();}
+    Circle get_circle(){return circle;}
+    float get_inv_mass(){return inv_mass;}
 
     //setters
     void set_velocity(float x, float y){

@@ -41,24 +41,30 @@ private:
 
 
 
+
+
 int main() {
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Simple Physics Engine");
     float h = sf::VideoMode::getDesktopMode().height;
     float w = sf::VideoMode::getDesktopMode().width;
     Circle circ{100, Vect{w/2,h/2}};
-    Body body{circ, 0.4, 2, Vect{1000, 1000}};
+    Circle circ2{50, Vect{500,500}};
+    Body body2{circ2, 0.4, 4, Vect{200, 200}};
+    Body body{circ, 0.4, 2, Vect{200, 200}};
+    Vect centreLine = body2.get_position() - body.get_position();
+    centreLine.normalize();
+    Manifold m{body,body2,0, centreLine};
 
-    sf::CircleShape shape{circ.get_radius()};
-    shape.setFillColor(sf::Color::Black);
-    shape.setPosition(circ.get_centre().get_x(), circ.get_centre().get_y());
     float fps = 60;
     float dt = 1/fps;
     sf::Clock clock;
     float accum = 0;
     Vect prev = Vect{body.get_position().get_x(), body.get_position().get_y()};
-    Vect curr = Vect{body.get_position().get_x(), body.get_position().get_y()};
-
+    Vect curr = prev;
+    Vect prev1 = Vect{body2.get_position().get_x(), body2.get_position().get_y()};
+    Vect curr1 = prev1;
     DrawBody bod(body,h);
+    DrawBody bod2(body2,h);
 
     while(window.isOpen()){
         sf::Event event;
@@ -77,17 +83,32 @@ int main() {
 
         while(accum > dt){
             body.integrate(dt,w, h);
+            body2.integrate(dt,w,h);
+            if(does_intersect(body,body2)){
+                std::cout << "eee\n";
+                set_new_speeds(body,body2,m);
+               // position_correction(body,body2,m);
+            }
             accum-=dt;
         }
 
         float a = accum/dt;
-        Vect temp{prev.get_x()*a + curr.get_x()*(1-a),prev.get_y()*a + curr.get_y()*(1-a)};
-        prev = Vect{body.get_position().get_x(), body.get_position().get_y()};
-        curr = temp;
-        body.set_position(temp);
+        curr = Vect{body.get_position().get_x(), body.get_position().get_y()};
+        Vect render_pos{prev.get_x()*a + curr.get_x()*(1-a),prev.get_y()*a + curr.get_y()*(1-a)};
+        body.set_position(render_pos);
+
+        curr1 = Vect{body2.get_position().get_x(), body2.get_position().get_y()};
+        Vect render_pos2{prev1.get_x()*a + curr1.get_x()*(1-a),prev1.get_y()*a + curr1.get_y()*(1-a)};
+        body2.set_position(render_pos2);
+
 
 
         window.draw(bod);
+        window.draw(bod2);
+        body.set_position(curr);
+        body2.set_position(curr1);
+        prev = curr;
+        prev1 = curr1;
         window.display();
 
 
