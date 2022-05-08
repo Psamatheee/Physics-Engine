@@ -6,8 +6,8 @@
 #include "DrawBody.cpp"
 
 struct point{
-    float x;
-    float y;
+    double x;
+    double y;
 };
 struct Rectangle{
     point min;
@@ -31,22 +31,22 @@ bool does_rect_intersect(Rectangle& r1, Rectangle& r2){
 
 int main() {
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Simple Physics Engine");
-    float h = window.getSize().y;
-    float w =window.getSize().x;
+    double h = window.getSize().y;
+    double w =window.getSize().x;
     Circle circ{100, Vec{w / 2, h / 2}};
     Circle circ2{150, Vec{500, 500}};
-    Body body2{circ2, 0.4, 3, Vec{500, 500}};
-    Body body{circ, 0.4, 2, Vec{300, 300}};
+    Body body2{circ2, 0.75, 3, Vec{1000, 500}};
+    Body body{circ, 0.75, 1, Vec{300, 300}};
     Vec pos = body.get_position();
     Vec pos2 = body2.get_position();
     Vec centreLine = pos2 - pos;
     centreLine.normalize();
     Manifold m{body,body2,0, centreLine};
 
-    float fps = 60;
-    float dt = 1/fps;
+    double fps = 60;
+    double dt = 1/fps;
     sf::Clock clock;
-    float accum = 0;
+    double accum = 0;
     Vec prev = Vec{body.get_position().get_x(), body.get_position().get_y()};
     Vec curr = prev;
     Vec prev1 = Vec{body2.get_position().get_x(), body2.get_position().get_y()};
@@ -75,13 +75,13 @@ int main() {
             if(does_intersect(body,body2) ){
                 std::cout << "eee\n";
                 set_new_speeds(body,body2,m);
-               position_correction(body,body2,m);
+              // position_correction(body,body2,m);
 
             }
             accum-=dt;
         }
 
-        float a = accum/dt;
+        double a = accum/dt;
         curr = Vec{body.get_position().get_x(), body.get_position().get_y()};
         Vec render_pos{prev.get_x() * a + curr.get_x() * (1 - a), prev.get_y() * a + curr.get_y() * (1 - a)};
         body.set_position(render_pos);

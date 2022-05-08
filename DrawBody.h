@@ -12,14 +12,14 @@
 
 class DrawBody : public sf::Drawable{
 public:
-    DrawBody(Body& bod, float height, sf::Color color) : body(bod), h(height), color(color){}
+    DrawBody(Body& bod, double height, sf::Color color) : body(bod), h(height), color(color){}
 
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 
 private:
     Body& body;
-    float h;
+    double h;
     sf::Color color;
 
 };

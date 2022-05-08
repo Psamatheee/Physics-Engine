@@ -5,10 +5,11 @@
 #include "DrawBody.h"
 void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     if(body.get_shape().get_type() == Type::Circle){
-        sf::CircleShape circ{body.get_shape().get_radius()};
+        auto rad = (float) body.get_shape().get_radius();
+        sf::CircleShape circ{rad};
         circ.setOrigin(circ.getRadius(),circ.getRadius());
         circ.setFillColor(color);
-        circ.setPosition(body.get_position().get_x(), h-body.get_position().get_y());
+        circ.setPosition((float) body.get_position().get_x(),(float) (h-body.get_position().get_y()));
         target.draw(circ,states);
     }
 
