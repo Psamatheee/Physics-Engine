@@ -65,15 +65,62 @@ bool does_intersect(Body& a, Body& b){
 };
 
 bool Body::collides_wall(float h, float w){
-
-    if(get_position().get_y() + get_radius() >= h || get_position().get_y() - get_radius() <= 0  ) {
+    if(get_position().get_y() + get_radius() >= h  ) {
+        float pen = get_position().get_y() + get_radius() - h;
         set_velocity(get_velocity().get_x(), get_velocity().get_y() * -1);
+        const float slop = 0.01; // usually 0.01 to 0.1
+        const float percent = 0.2; // usually 20% to 80%
+       Vect normal{0,1};
+        Vect correction = (std::max(pen-slop,0.0f) / (get_inv_mass() ) * percent) *normal ;
+        Vect a_pos = get_position();
+        Vect a_correct = get_inv_mass()*correction;
+        Vect new_a = a_pos-a_correct ;
+        set_position(new_a);
+
+
         return true;
     }
+    if( get_position().get_y() - get_radius() <= 0  ) {
+        set_velocity(get_velocity().get_x(), get_velocity().get_y() * -1);
+        float pen = -get_position().get_y()+ get_radius();
 
-    if(get_position().get_x() + get_radius() >= w || get_position().get_x() - get_radius() <= 0  ) {
+        const float slop = 0.01; // usually 0.01 to 0.1
+        const float percent = 0.2; // usually 20% to 80%
+        Vect normal{0,-1};
+        Vect correction = (std::max(pen-slop,0.0f) / (get_inv_mass() ) * percent) *normal ;
+        Vect a_pos = get_position();
+        Vect a_correct = get_inv_mass()*correction;
+        Vect new_a = a_pos-a_correct ;
+        set_position(new_a);
+    }
+
+    if(get_position().get_x() + get_radius() >= w  ) {
         set_velocity(get_velocity().get_x() * -1, get_velocity().get_y() );
+        float pen = get_position().get_x()+ get_radius() - w;
+
+        const float slop = 0.01; // usually 0.01 to 0.1
+        const float percent = 0.2; // usually 20% to 80%
+        Vect normal{1,0};
+        Vect correction = (std::max(pen-slop,0.0f) / (get_inv_mass() ) * percent) *normal ;
+        Vect a_pos = get_position();
+        Vect a_correct = get_inv_mass()*correction;
+        Vect new_a = a_pos-a_correct ;
+        set_position(new_a);
        return true;
+    }
+    if(get_position().get_x() - get_radius() <= 0  ) {
+        set_velocity(get_velocity().get_x() * -1, get_velocity().get_y() );
+        float pen = -get_position().get_x()+ get_radius();
+
+        const float slop = 0.01; // usually 0.01 to 0.1
+        const float percent = 0.2; // usually 20% to 80%
+        Vect normal{-1,0};
+        Vect correction = (std::max(pen-slop,0.0f) / (get_inv_mass() ) * percent) *normal ;
+        Vect a_pos = get_position();
+        Vect a_correct = get_inv_mass()*correction;
+        Vect new_a = a_pos-a_correct ;
+        set_position(new_a);
+        return true;
     }
 
     return false;
@@ -98,8 +145,8 @@ void position_correction(Body& a, Body& b, Manifold& m){
     a.set_position(new_a);
 
 
-    Vect b_pos = a.get_position();
-    Vect b_correct = a.get_inv_mass()*correction;
+    Vect b_pos = b.get_position();
+    Vect b_correct = b.get_inv_mass()*correction;
     Vect new_b = b_correct + b_pos;
     b.set_position(new_b);
 }
@@ -111,6 +158,12 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
     centreLine.normalize();
     m.penetration = get_depth(b.get_circle(), a.get_circle());
     m.normal = centreLine;
+    Vect relat_velocity = b.get_velocity()-a.get_velocity();
+    if(dotProd(relat_velocity, centreLine)>0) {
+        std::cout<<"goodbye\n";
+        return;
+    }
+    std::cout<< "normal line: " << centreLine.get_x() <<  " " << centreLine.get_y() << "\n";
     std::cout<< "a pos " << a.get_position().get_x() << " " << a.get_position().get_y() << "\n";
     std::cout<< "b pos " << b.get_position().get_x() << " " << b.get_position().get_y() << "\n";
     std::cout << "prev  v_x a: " << a.get_velocity().get_x()<<"\n";
@@ -121,6 +174,8 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
     //these are the initial velocity compnenets along the centreline of the 2 circles
     float initial_speed_a = dotProd(a.get_velocity(),centreLine);
     float initial_speed_b = dotProd(b.get_velocity(),centreLine);
+    std::cout<< "init normal speed a " << initial_speed_a << "\n";
+    std::cout<< "init normal speed b " << initial_speed_b << "\n";
 
     float e = std::min(a.get_e(), b.get_e());
     //along the collision normal, the problem becomes 1D
@@ -128,10 +183,14 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
     float final_speed_a = e*(initial_speed_b - initial_speed_a) + final_speed_b;
 
     //get full velocity by adding to the full velocity vector
-    Vect a_along_n = scalar_mult(final_speed_a,centreLine);
+  //if(final_speed_a < 0) final_speed_a= final_speed_a*-1;
+   //if(final_speed_b < 0) final_speed_b= final_speed_b*-1;
+    Vect a_along_n = scalar_mult((-initial_speed_a + final_speed_a),centreLine);
     Vect final_velocity_a = a.get_velocity() +  a_along_n;
-    Vect b_along_n = scalar_mult(final_speed_b,centreLine);
+    Vect b_along_n = scalar_mult(final_speed_b -initial_speed_b  ,centreLine);
     Vect final_velocity_b = b.get_velocity() +  b_along_n;
+    std::cout << "final along n a " << a_along_n.get_x() << " " << a_along_n.get_y() <<"\n";
+    std::cout << "final along n b " << b_along_n.get_x() << " " << b_along_n.get_y() <<"\n";
 
    a.set_velocity(final_velocity_a.get_x(),final_velocity_a.get_y());
     b.set_velocity(final_velocity_b.get_x(),final_velocity_b.get_y());

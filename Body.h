@@ -18,8 +18,10 @@ public:
     float get_x(){return x;}
     float get_y(){return y;}
 
-    void set_x(float xx){x = xx; }
-    void set_y(float yy){y = yy;}
+    void set_x(float xx){x = xx;
+        size = sqrt(x*x + y*y);}
+    void set_y(float yy){y = yy;
+        size = sqrt(x*x + y*y);}
 
     void normalize();
 

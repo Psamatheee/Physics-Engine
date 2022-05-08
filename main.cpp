@@ -27,14 +27,17 @@ public:
 
    void draw(sf::RenderTarget &target, sf::RenderStates states) const override{
        sf::CircleShape circ{body.get_radius()};
-       circ.setOrigin(circ.getRadius(),circ.getRadius()*2);
-       circ.setFillColor(sf::Color::White);
+       circ.setOrigin(circ.getRadius(),circ.getRadius());
+       circ.setFillColor(color);
        circ.setPosition(body.get_position().get_x(), h-body.get_position().get_y());
        target.draw(circ,states);
    }
+
+    sf::Color color;
 private:
     Body& body;
    float h;
+
 
 };
 
@@ -45,12 +48,12 @@ private:
 
 int main() {
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Simple Physics Engine");
-    float h = sf::VideoMode::getDesktopMode().height;
-    float w = sf::VideoMode::getDesktopMode().width;
+    float h = window.getSize().y;
+    float w =window.getSize().x;
     Circle circ{100, Vect{w/2,h/2}};
-    Circle circ2{50, Vect{500,500}};
-    Body body2{circ2, 0.4, 4, Vect{200, 200}};
-    Body body{circ, 0.4, 2, Vect{200, 200}};
+    Circle circ2{150, Vect{500,500}};
+    Body body2{circ2, 0.4, 3, Vect{500, 500}};
+    Body body{circ, 0.4, 2, Vect{300, 300}};
     Vect centreLine = body2.get_position() - body.get_position();
     centreLine.normalize();
     Manifold m{body,body2,0, centreLine};
@@ -65,7 +68,9 @@ int main() {
     Vect curr1 = prev1;
     DrawBody bod(body,h);
     DrawBody bod2(body2,h);
-
+    bod.color = sf::Color::Black;
+    bod2.color = sf::Color::White;
+//bool started_resolution = false;
     while(window.isOpen()){
         sf::Event event;
         while(window.pollEvent(event)){
@@ -84,10 +89,11 @@ int main() {
         while(accum > dt){
             body.integrate(dt,w, h);
             body2.integrate(dt,w,h);
-            if(does_intersect(body,body2)){
+            if(does_intersect(body,body2) ){
                 std::cout << "eee\n";
                 set_new_speeds(body,body2,m);
-               // position_correction(body,body2,m);
+               position_correction(body,body2,m);
+
             }
             accum-=dt;
         }
