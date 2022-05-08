@@ -2,7 +2,8 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include "Body.cpp"
+//#include "Body.cpp"
+#include "DrawBody.cpp"
 
 struct point{
     float x;
@@ -21,25 +22,7 @@ bool does_rect_intersect(Rectangle& r1, Rectangle& r2){
     return true;
 }
 
-class DrawBody : public sf::Drawable{
-public:
-   DrawBody(Body& bod, float height) : body(bod), h(height){}
 
-   void draw(sf::RenderTarget &target, sf::RenderStates states) const override{
-       sf::CircleShape circ{body.get_radius()};
-       circ.setOrigin(circ.getRadius(),circ.getRadius());
-       circ.setFillColor(color);
-       circ.setPosition(body.get_position().get_x(), h-body.get_position().get_y());
-       target.draw(circ,states);
-   }
-
-    sf::Color color;
-private:
-    Body& body;
-   float h;
-
-
-};
 
 
 
@@ -50,11 +33,13 @@ int main() {
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Simple Physics Engine");
     float h = window.getSize().y;
     float w =window.getSize().x;
-    Circle circ{100, Vect{w/2,h/2}};
-    Circle circ2{150, Vect{500,500}};
-    Body body2{circ2, 0.4, 3, Vect{500, 500}};
-    Body body{circ, 0.4, 2, Vect{300, 300}};
-    Vect centreLine = body2.get_position() - body.get_position();
+    Circle circ{100, Vec{w / 2, h / 2}};
+    Circle circ2{150, Vec{500, 500}};
+    Body body2{circ2, 0.4, 3, Vec{500, 500}};
+    Body body{circ, 0.4, 2, Vec{300, 300}};
+    Vec pos = body.get_position();
+    Vec pos2 = body2.get_position();
+    Vec centreLine = pos2 - pos;
     centreLine.normalize();
     Manifold m{body,body2,0, centreLine};
 
@@ -62,14 +47,12 @@ int main() {
     float dt = 1/fps;
     sf::Clock clock;
     float accum = 0;
-    Vect prev = Vect{body.get_position().get_x(), body.get_position().get_y()};
-    Vect curr = prev;
-    Vect prev1 = Vect{body2.get_position().get_x(), body2.get_position().get_y()};
-    Vect curr1 = prev1;
-    DrawBody bod(body,h);
-    DrawBody bod2(body2,h);
-    bod.color = sf::Color::Black;
-    bod2.color = sf::Color::White;
+    Vec prev = Vec{body.get_position().get_x(), body.get_position().get_y()};
+    Vec curr = prev;
+    Vec prev1 = Vec{body2.get_position().get_x(), body2.get_position().get_y()};
+    Vec curr1 = prev1;
+    DrawBody bod(body,h,sf::Color::White);
+    DrawBody bod2(body2,h,sf::Color::White);
 //bool started_resolution = false;
     while(window.isOpen()){
         sf::Event event;
@@ -99,12 +82,12 @@ int main() {
         }
 
         float a = accum/dt;
-        curr = Vect{body.get_position().get_x(), body.get_position().get_y()};
-        Vect render_pos{prev.get_x()*a + curr.get_x()*(1-a),prev.get_y()*a + curr.get_y()*(1-a)};
+        curr = Vec{body.get_position().get_x(), body.get_position().get_y()};
+        Vec render_pos{prev.get_x() * a + curr.get_x() * (1 - a), prev.get_y() * a + curr.get_y() * (1 - a)};
         body.set_position(render_pos);
 
-        curr1 = Vect{body2.get_position().get_x(), body2.get_position().get_y()};
-        Vect render_pos2{prev1.get_x()*a + curr1.get_x()*(1-a),prev1.get_y()*a + curr1.get_y()*(1-a)};
+        curr1 = Vec{body2.get_position().get_x(), body2.get_position().get_y()};
+        Vec render_pos2{prev1.get_x() * a + curr1.get_x() * (1 - a), prev1.get_y() * a + curr1.get_y() * (1 - a)};
         body2.set_position(render_pos2);
 
 
