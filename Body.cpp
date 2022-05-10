@@ -6,6 +6,7 @@
 //#include "Geometry.h"
 #include <algorithm>
 #include <iostream>
+#include <utility>
 
 
 void Body::integrate(double dt, double w, double h) {
@@ -21,6 +22,16 @@ void Body::integrate(double dt, double w, double h) {
 bool does_intersect(Body& a, Body& b){
     return a.shape.intersects(b.shape);
 };
+
+struct Pair{
+    Body* a;
+    Body* b;
+};
+
+bool compare(Pair& l, Pair& r ){
+    return pow(l.a->get_position().get_x() - l.b->get_position().get_x(),2) + pow(l.a->get_position().get_y() - l.b->get_position().get_y(),2) < pow(r.a->get_position().get_x() - r.b->get_position().get_x(),2) + pow(r.a->get_position().get_y() - r.b->get_position().get_y(),2);
+}
+
 
 
 bool Body::collides_wall(double h, double w){
@@ -69,6 +80,16 @@ bool Body::collides_wall(double h, double w){
 
 
     return true;
+}
+
+bool operator==(Body a, Body b) {
+    bool vecs = (a.get_position().get_x() == b.get_position().get_x() && a.get_position().get_y() == b.get_position().get_y() && a.get_velocity().get_y() == b.get_velocity().get_y() &&a.get_velocity().get_x() == b.get_velocity().get_x()  );
+    bool mass = (a.get_mass() == b.get_mass());
+    return mass && vecs;
+}
+
+bool operator!=(Body a, Body b) {
+    return !(a==b);
 }
 
 struct Manifold{
@@ -147,5 +168,36 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
 
 
 }
+
+
+class BroadPhase{
+public:
+   // explicit BroadPhase(std::vector<Body> bodies) : bodies(std::move(bodies)){}
+    BroadPhase(std::vector<Body*>& bodies) : bodies(bodies){}
+    void generate_pairs(){
+        pairs.clear();
+        Rectangle a;
+        Rectangle b;
+        for(int i =0; i < bodies.size(); i++){
+            int j = i + 1;
+            a = bodies[i]->get_shape().get_bounding_box();
+            while (j < bodies.size()){
+                    b = bodies[j]->get_shape().get_bounding_box();
+                    if(does_rect_intersect(a,b)){
+                        Body* ap = bodies[i];
+                        Body* bp = bodies[j];
+                        pairs.push_back(Pair{ap,bp});
+                    }
+            }
+        }
+
+
+    }
+
+    std::vector<Pair> get_pairs(){return pairs;}
+private:
+    std::vector<Body*>& bodies;
+    std::vector<Pair> pairs;
+};
 
 

@@ -18,7 +18,7 @@ public:
 
 
 private:
-    Body& body;
+    const Body& body;
     double h;
     sf::Color color;
 

@@ -15,6 +15,9 @@ public:
         inv_mass= 1/mass;
         velocity.set_x(vect.get_x());
         velocity.set_y(vect.get_y());
+        current = shape.get_position();
+        previous = shape.get_position();
+        render_pos = shape.get_position();
 
     };
 
@@ -22,9 +25,12 @@ public:
     double get_e() const{return rest_const;}
     double get_mass() const{return mass;}
     Vec& get_velocity(){return velocity;}
-    Vec get_position(){return shape.get_position();}
+    Vec get_position()const {return shape.get_position();}
     double get_inv_mass() const{return inv_mass;}
     Shape& get_shape() const {return shape;}
+    Vec get_curr(){return current;}
+    Vec get_prev(){return previous;}
+    Vec get_render()const {return render_pos;}
 
     //setters
     void set_velocity(double x, double y){
@@ -37,11 +43,23 @@ public:
     void set_position(double xx, double yy){
         shape.set_position(xx,yy);
     }
+    void set_current(Vec vec){
+        current = vec;
+    }
+    void set_previous(Vec vec){
+        previous = vec;
+    }
+    void set_render(Vec vec){
+        render_pos = vec;
+    }
+
 
     bool collides_wall(double h, double w);
     void integrate(double dt, double w, double h);
 
     friend bool does_intersect(Body& a, Body& b);
+    friend bool operator==(Body a, Body b);
+    friend bool operator!=(Body a, Body b);
 
 
 private:
@@ -50,6 +68,9 @@ private:
     double mass;
     double inv_mass;
     Vec velocity;
+    Vec current;
+    Vec previous;
+    Vec render_pos;
 
 
 };

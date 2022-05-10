@@ -9,7 +9,8 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         sf::CircleShape circ{rad};
         circ.setOrigin(circ.getRadius(),circ.getRadius());
         circ.setFillColor(color);
-        circ.setPosition((float) body.get_position().get_x(),(float) (h-body.get_position().get_y()));
+
+        circ.setPosition((float) body.get_render().get_x(),(float) (h-body.get_render().get_y()));
         target.draw(circ,states);
     }
 

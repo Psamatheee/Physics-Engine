@@ -22,6 +22,10 @@ Vec operator*(double num, Vec &v) {
     return Vec{v.get_x() * num, v.get_y() * num};
 }
 
+double Vec::angle_from_xaxis() {
+    return std::atan(y/x);
+}
+
 //Vector helper functions
 double dotProd(Vec& v1, Vec& v2){
     return v1.get_x() * v2.get_x() + v1.get_y() * v2.get_y();
@@ -48,6 +52,14 @@ Boundary Circle::collides_boundary(double w, double h) {
     if(get_position().get_x() + get_radius() >= w  ) return Boundary::Right;
     if(get_position().get_x() - get_radius() <= 0  ) return Boundary::Left;
     return Boundary::None;
+}
+
+Rectangle Circle::get_bounding_box() {
+    Rectangle bb;
+    bb.min.set_x( get_position().get_x() - radius);
+    bb.min.set_y( get_position().get_y() - radius);
+    bb.max.set_x( get_position().get_x() + radius);
+    bb.max.set_y( get_position().get_y() + radius);
 }
 
 bool does_circle_intersect(Circle& c1, Circle& c2){
