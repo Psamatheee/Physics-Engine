@@ -173,14 +173,17 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
 class BroadPhase{
 public:
    // explicit BroadPhase(std::vector<Body> bodies) : bodies(std::move(bodies)){}
-    BroadPhase(std::vector<Body*>& bodies) : bodies(bodies){}
+    explicit BroadPhase(const std::vector<Body*>&  bodies) : bodies(bodies){
+       pairs.clear();
+   }
     void generate_pairs(){
         pairs.clear();
         Rectangle a;
         Rectangle b;
         for(int i =0; i < bodies.size(); i++){
             int j = i + 1;
-            a = bodies[i]->get_shape().get_bounding_box();
+            a.min = bodies[i]->get_shape().get_bounding_box().min;
+            a.max = bodies[i]->get_shape().get_bounding_box().max;
             while (j < bodies.size()){
                     b = bodies[j]->get_shape().get_bounding_box();
                     if(does_rect_intersect(a,b)){
@@ -188,6 +191,7 @@ public:
                         Body* bp = bodies[j];
                         pairs.push_back(Pair{ap,bp});
                     }
+                    j++;
             }
         }
 
@@ -196,7 +200,7 @@ public:
 
     std::vector<Pair> get_pairs(){return pairs;}
 private:
-    std::vector<Body*>& bodies;
+    const std::vector<Body*>& bodies;
     std::vector<Pair> pairs;
 };
 

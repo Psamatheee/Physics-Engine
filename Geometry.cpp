@@ -60,6 +60,7 @@ Rectangle Circle::get_bounding_box() {
     bb.min.set_y( get_position().get_y() - radius);
     bb.max.set_x( get_position().get_x() + radius);
     bb.max.set_y( get_position().get_y() + radius);
+    return bb;
 }
 
 bool does_circle_intersect(Circle& c1, Circle& c2){
