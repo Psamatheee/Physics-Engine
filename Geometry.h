@@ -5,7 +5,7 @@
 #ifndef ENGINE_GEOMETRY_H
 #define ENGINE_GEOMETRY_H
 #include <cmath>
-enum class Type {Base, Circle};
+enum class Type {Base, Circle, AABB};
 enum class Boundary {Top, Right, Bottom, Left, None};
 
 class Vec{
@@ -69,10 +69,12 @@ public:
     virtual Boundary collides_boundary(double w, double h) = 0;
 
     //Circle functions
-    virtual double get_radius(){return radius;}
-private:
-    Vec position;
-    double radius;
+    double get_radius();
+
+    //AABB functions
+    Vec get_min();
+    Vec get_max();
+
 };
 
 class Circle : public Shape{
@@ -80,7 +82,7 @@ public:
     Circle(double r, Vec c) : radius{r}, centre{c}{}
     Circle() : radius{50}, centre(100,100){}
 
-    double get_radius() override {return radius;}
+    double get_radius() {return radius;}
     Vec& get_centre(){return centre;}
     Vec get_position() override{return centre;}
     double get_x() override{return centre.get_x();}
@@ -94,12 +96,39 @@ public:
         centre.set_y(yy);
     }
 
+   // Vec Get
+
     bool intersects(Shape& shape) override;
     Boundary collides_boundary(double w, double h) override;
 
 private:
     const double radius;
     Vec centre; //position vector to the centre of the circle
+};
+
+class AABB : public Shape{
+public:
+    AABB(Vec min, Vec max) : min(min), max(max){};
+
+    Vec get_position() override {return min;}
+    double get_x() override {return min.get_x();}
+    double get_y() override {return min.get_y();}
+    Type get_type() override {return Type::AABB;}
+
+    Rectangle get_bounding_box() override {return Rectangle{min,max};}
+
+    Vec get_min() override {return min;}
+    Vec get_max() override {return max;}
+
+    void set_position(double xx, double yy)override;
+
+    bool intersects(Shape& shape) override;
+    Boundary collides_boundary(double w, double h) override;
+
+private:
+    Vec min;
+    Vec max;
+
 };
 
 

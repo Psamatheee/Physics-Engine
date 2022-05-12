@@ -121,50 +121,64 @@ void position_correction(Body& a, Body& b, Manifold& m){
 void set_new_speeds(Body& a, Body& b, Manifold& m ){
     Vec a_pos = a.get_position();
     Vec b_pos = b.get_position();
-    Vec centreLine = b_pos-a_pos;
-    centreLine.normalize();
-    m.penetration = get_depth(b.get_shape(), a.get_shape());
-    m.normal = centreLine;
-    Vec relat_velocity = b.get_velocity() - a.get_velocity();
-    if(dotProd(relat_velocity, centreLine)>0) return;
+    if(a.get_shape().get_type() == Type::Circle && b.get_shape().get_type() == Type::Circle) {
 
-    std::cout<< "normal line: " << centreLine.get_x() <<  " " << centreLine.get_y() << "\n";
-    std::cout<< "a pos " << a.get_position().get_x() << " " << a.get_position().get_y() << "\n";
-    std::cout<< "b pos " << b.get_position().get_x() << " " << b.get_position().get_y() << "\n";
-    std::cout << "prev  v_x a: " << a.get_velocity().get_x()<<"\n";
-    std::cout << "prev  v_x b: " << b.get_velocity().get_x()<<"\n";
-    std::cout << "prev  v_y a: " << a.get_velocity().get_y()<<"\n";
-    std::cout << "prev  v_y b: " << b.get_velocity().get_y()<<"\n";
 
-    //these are the initial velocity compnenets along the centreline of the 2 circles
-    double initial_speed_a = dotProd(a.get_velocity(),centreLine);
-    double initial_speed_b = dotProd(b.get_velocity(),centreLine);
- //   std::cout<< "init normal speed a " << initial_speed_a << "\n";
-  //  std::cout<< "init normal speed b " << initial_speed_b << "\n";
+        Vec centreLine = b_pos - a_pos;
+        centreLine.normalize();
+        m.penetration = get_depth(b.get_shape(), a.get_shape());
+        m.normal = centreLine;
+        Vec relat_velocity = b.get_velocity() - a.get_velocity();
+        if (dotProd(relat_velocity, centreLine) > 0) return;
 
-    double e = std::min(a.get_e(), b.get_e());
-    //along the collision normal, the problem becomes 1D
-  //  double final_speed_b = (-e*(initial_speed_b - initial_speed_a) + a.get_mass()*initial_speed_a + b.get_mass()*initial_speed_b) * 1/(1 + b.get_mass());
-  //  double final_speed_a = e*(initial_speed_b - initial_speed_a) + final_speed_b;
-  double final_speed_b = a.get_mass()/(b.get_mass() + a.get_mass()) * (initial_speed_a + b.get_mass()/a.get_mass() - e*(initial_speed_b-initial_speed_a));
-  double final_speed_a = e*(initial_speed_b-initial_speed_a) + final_speed_b;
 
-    //get full velocity by adding to the full velocity vector
-  //if(final_speed_a < 0) final_speed_a= final_speed_a*-1;
-   //if(final_speed_b < 0) final_speed_b= final_speed_b*-1;
-    Vec a_along_n = scalar_mult((-initial_speed_a + final_speed_a), centreLine);
-    Vec final_velocity_a = a.get_velocity() + a_along_n;
-    Vec b_along_n = scalar_mult(final_speed_b - initial_speed_b  , centreLine);
-    Vec final_velocity_b = b.get_velocity() + b_along_n;
-   // std::cout << "final along n a " << a_along_n.get_x() << " " << a_along_n.get_y() <<"\n";
-   // std::cout << "final along n b " << b_along_n.get_x() << " " << b_along_n.get_y() <<"\n";
+        //these are the initial velocity compnenets along the centreline of the 2 circles
+        double initial_speed_a = dotProd(a.get_velocity(), centreLine);
+        double initial_speed_b = dotProd(b.get_velocity(), centreLine);
 
-   a.set_velocity(final_velocity_a.get_x(),final_velocity_a.get_y());
-    b.set_velocity(final_velocity_b.get_x(),final_velocity_b.get_y());
-    std::cout << "final  v_x a: " << a.get_velocity().get_x()<<"\n";
-    std::cout << "final  v_x b: " << b.get_velocity().get_x()<<"\n";
-    std::cout << "final  v_y a: " << a.get_velocity().get_y()<<"\n";
-    std::cout << "final  v_y b: " << b.get_velocity().get_y()<<"\n";
+        double e = std::min(a.get_e(), b.get_e());
+        double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
+                               (initial_speed_a + b.get_mass() / a.get_mass() -
+                                e * (initial_speed_b - initial_speed_a));
+        double final_speed_a = e * (initial_speed_b - initial_speed_a) + final_speed_b;
+
+        //get full velocity by adding to the full velocity vector
+        Vec a_along_n = scalar_mult((-initial_speed_a + final_speed_a), centreLine);
+        Vec final_velocity_a = a.get_velocity() + a_along_n;
+        Vec b_along_n = scalar_mult(final_speed_b - initial_speed_b, centreLine);
+        Vec final_velocity_b = b.get_velocity() + b_along_n;
+
+        a.set_velocity(final_velocity_a.get_x(), final_velocity_a.get_y());
+        b.set_velocity(final_velocity_b.get_x(), final_velocity_b.get_y());
+    }
+
+    if(a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::AABB){
+       //already know it's intersecting
+       Rectangle aa{a.get_shape().get_min(),a.get_shape().get_max()};
+        Rectangle bb{b.get_shape().get_min(),b.get_shape().get_max()};
+        if(aa.max.get_x() > bb.min.get_x() && aa.max.get_x()<bb.max.get_x()){
+            if(aa.max.get_y() > bb.max.get_y()){
+                double x_pen = aa.max.get_x() - bb.min.get_x();
+                double y_pen = aa.max.get_y() - bb.max.get_y();
+                Vec centreline;
+                if(x_pen>y_pen) {
+                    centreline.set_x(0);
+                    centreline.set_y(1);
+                    m.normal = centreline;
+                    m.penetration = y_pen;
+                }else{
+                    centreline.set_y(0);
+                    centreline.set_x(-1);
+                    m.normal = centreline;
+                    m.penetration = x_pen;
+                }
+
+
+
+
+            }
+        }
+    }
 
 
 }

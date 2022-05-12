@@ -40,6 +40,8 @@ Vec scalar_mult(double num, Vec& v){
 
 bool Circle::intersects(Shape &shape) {
     if(shape.get_type() == Type::Circle){
+        //Circle circ = shape;
+        //shape.get_centre();
         double distance_sqr = pow(centre.get_x() - shape.get_x(),2) + pow(centre.get_y() - shape.get_y(),2);
         return pow(radius + shape.get_radius(),2) >= distance_sqr;
     }
@@ -79,4 +81,41 @@ double get_depth(Shape& a, Shape& b) {
     }
     return 0;
 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//AABB functions
+
+void AABB::set_position(double xx, double yy) {
+    double width = max.get_x() - min.get_x();
+    double height = max.get_y() - max.get_y();
+    max.set_x(xx + width);
+    max.set_y(yy+height);
+    min.set_y(yy);
+    min.set_x(xx);
+}
+
+bool AABB::intersects(Shape& shape){
+    if(shape.get_type() == Type::AABB){
+        if (min.get_x() > shape.get_max().get_x() || max.get_x() < shape.get_min().get_x()) return false;
+        // check if there is separation along the y-.get_x()is
+        if (min.get_y() > shape.get_max().get_x()|| max.get_x() < shape.get_min().get_y()) return false;
+        return true;
+    }
+    return false;
+
+}
+
+Boundary AABB::collides_boundary(double w, double h) {
+    if(max.get_y() > h || min.get_y() > h) return Boundary::Top;
+    if(min.get_y() < 0) return Boundary::Bottom;
+    if(max.get_x() > w ) return Boundary::Right;
+    if(min.get_x() < 0) return Boundary::Left;
+    return Boundary::None;
+}
+
+bool intersects(Shape& a, Shape& b){
+    if(a.get_type() == Type::AABB && b.get_type() == Type::AABB){
+
+    }
 }
