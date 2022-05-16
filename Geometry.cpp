@@ -88,11 +88,12 @@ double get_depth(Shape& a, Shape& b) {
 
 void AABB::set_position(double xx, double yy) {
     double width = max.get_x() - min.get_x();
-    double height = max.get_y() - max.get_y();
-    max.set_x(xx + width);
-    max.set_y(yy+height);
-    min.set_y(yy);
-    min.set_x(xx);
+    double height = max.get_y() - min.get_y();
+    std::cout<<width << " "<<height<<"\n";
+    min.set_x(xx - width);
+    min.set_y(yy-height);
+    max.set_y(yy);
+    max.set_x(xx);
 }
 
 bool AABB::intersects(Shape& shape){
@@ -107,7 +108,7 @@ bool AABB::intersects(Shape& shape){
 }
 
 Boundary AABB::collides_boundary(double w, double h) {
-    if(max.get_y() > h || min.get_y() > h) return Boundary::Top;
+    if(max.get_y() > h /*|| min.get_y() > h*/) return Boundary::Top;
     if(min.get_y() < 0) return Boundary::Bottom;
     if(max.get_x() > w ) return Boundary::Right;
     if(min.get_x() < 0) return Boundary::Left;

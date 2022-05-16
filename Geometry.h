@@ -69,11 +69,11 @@ public:
     virtual Boundary collides_boundary(double w, double h) = 0;
 
     //Circle functions
-    double get_radius();
+    virtual double get_radius() = 0;
 
     //AABB functions
-    Vec get_min();
-    Vec get_max();
+    virtual Vec get_min() =0;
+    virtual Vec get_max() =0;
 
 };
 
@@ -82,12 +82,14 @@ public:
     Circle(double r, Vec c) : radius{r}, centre{c}{}
     Circle() : radius{50}, centre(100,100){}
 
-    double get_radius() {return radius;}
+    double get_radius() override{return radius;}
     Vec& get_centre(){return centre;}
     Vec get_position() override{return centre;}
     double get_x() override{return centre.get_x();}
     double get_y() override{return centre.get_y();}
     Type get_type() override{return Type::Circle;}
+    Vec get_max() override{return Vec{};}
+    Vec get_min() override{return Vec{};}
 
     Rectangle get_bounding_box() override;
 
@@ -110,16 +112,16 @@ class AABB : public Shape{
 public:
     AABB(Vec min, Vec max) : min(min), max(max){};
 
-    Vec get_position() override {return min;}
-    double get_x() override {return min.get_x();}
-    double get_y() override {return min.get_y();}
+    Vec get_position() override {return max;}
+    double get_x() override {return max.get_x();}
+    double get_y() override {return max.get_y();}
     Type get_type() override {return Type::AABB;}
 
     Rectangle get_bounding_box() override {return Rectangle{min,max};}
 
     Vec get_min() override {return min;}
     Vec get_max() override {return max;}
-
+    double get_radius() override{return 0;}
     void set_position(double xx, double yy)override;
 
     bool intersects(Shape& shape) override;

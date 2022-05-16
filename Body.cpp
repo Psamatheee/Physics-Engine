@@ -121,10 +121,11 @@ void position_correction(Body& a, Body& b, Manifold& m){
 void set_new_speeds(Body& a, Body& b, Manifold& m ){
     Vec a_pos = a.get_position();
     Vec b_pos = b.get_position();
+    Vec r = b_pos - a_pos;
+
     if(a.get_shape().get_type() == Type::Circle && b.get_shape().get_type() == Type::Circle) {
-
-
         Vec centreLine = b_pos - a_pos;
+
         centreLine.normalize();
         m.penetration = get_depth(b.get_shape(), a.get_shape());
         m.normal = centreLine;
@@ -153,33 +154,106 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
     }
 
     if(a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::AABB){
+        Vec relat_velocity = b.get_velocity() - a.get_velocity();
+
+        if (dotProd(relat_velocity, r) > 0) return;
        //already know it's intersecting
+        double e = std::min(a.get_e(), b.get_e());
        Rectangle aa{a.get_shape().get_min(),a.get_shape().get_max()};
         Rectangle bb{b.get_shape().get_min(),b.get_shape().get_max()};
-        if(aa.max.get_x() > bb.min.get_x() && aa.max.get_x()<bb.max.get_x()){
-            if(aa.max.get_y() > bb.max.get_y()){
-                double x_pen = aa.max.get_x() - bb.min.get_x();
-                double y_pen = aa.max.get_y() - bb.max.get_y();
-                Vec centreline;
-                if(x_pen>y_pen) {
-                    centreline.set_x(0);
-                    centreline.set_y(1);
-                    m.normal = centreline;
-                    m.penetration = y_pen;
-                }else{
-                    centreline.set_y(0);
-                    centreline.set_x(-1);
-                    m.normal = centreline;
-                    m.penetration = x_pen;
-                }
+       if(r.get_x()<= 0){
+           if(r.get_y() <= 0){
+               //b intersects fully on left
+               if(bb.min.get_y() > aa.min.get_y()){
+                   m.normal = Vec{-1,0};
+                   m.penetration = bb.max.get_x() - aa.min.get_x();
+                   //b intersects fully on bottom
+               }else if(bb.min.get_x() >= aa.max.get_x()){
+                   m.normal = Vec{0,-1};
+                   m.penetration = bb.max.get_y() - aa.min.get_y();
+                   //b intersects left and bottom
+               }else{
+                   double x_pen = bb.max.get_x() - aa.min.get_x();
+                   double y_pen = bb.max.get_y() - aa.min.get_y();
+                   if(x_pen < y_pen) {
+                       m.penetration = x_pen;
+                       m.normal = Vec{-1,0};
+                   }else{
+                       m.penetration = y_pen;
+                       m.normal = Vec{0,-1};
+                   }
+               }
+           }else{
+               //b intersect fully top
+               if(bb.min.get_x() >= aa.min.get_x()){
+                   m.penetration = aa.max.get_y() - bb.min.get_y();
+                   m.normal = Vec{0,1};
+               }else{
+                   double x_pen = bb.max.get_x() - aa.min.get_x();
+                   double y_pen = aa.max.get_y() - bb.min.get_y();
+                   if(bb.min.get_y() < aa.min.get_y() || x_pen<y_pen){
+                       m.penetration = x_pen;
+                       m.normal = Vec{-1,0};
+                   }else{
+                       m.penetration = y_pen;
+                       m.normal= Vec{0,1};
+                   }
+               }
+           }
+       } else{
+           if(r.get_y() <= 0){
+               double x_pen = aa.max.get_x()-bb.min.get_x();
+               double y_pen = bb.max.get_y()-aa.min.get_y();
+               if(bb.min.get_y() < aa.min.get_y() || x_pen<y_pen  ){
+                   m.penetration = x_pen;
+                   m.normal = Vec{1,0};
+               }else{
+                   m.penetration = y_pen;
+                   m.normal = Vec{0,-1};
+               }
 
+           }else{
+               double x_pen = aa.max.get_x() - bb.min.get_x();
+               double y_pen = aa.max.get_y()-bb.min.get_y();
+               if(bb.min.get_y() < aa.min.get_y() || x_pen < y_pen){
+                   m.penetration = x_pen;
+                   m.normal = Vec{1,0};
+               }else{
+                   m.penetration = y_pen;
+                   m.normal = Vec{0,1};
+               }
+           }
+       }
 
+       if(m.normal.get_y() != 0){
+         //  double final_b = 1/(a.get_mass() + b.get_mass()) * (a.get_mass()*a.get_velocity().get_y() + b.get_mass()*b.get_velocity().get_y()+a.get_mass()*e*(a.get_velocity().get_y() + b.get_velocity().get_y()));
+         //  double final_a = final_b - e*(a.get_velocity().get_y() - b.get_velocity().get_y());
+         //
+           double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
+                                  (a.get_velocity().get_y() + b.get_mass() / a.get_mass() -
+                                   e * (b.get_velocity().get_y() - a.get_velocity().get_y()));
+           double final_speed_a = e * (b.get_velocity().get_y() - a.get_velocity().get_y()) + final_speed_b;
+           b.set_velocity(b.get_velocity().get_x(),final_speed_b);
+            a.set_velocity(a.get_velocity().get_x(),final_speed_a);
+            std::cout << "VELOCITY " << b.get_velocity().get_x() << " " << b.get_velocity().get_y() << "\n";
+       }
+        if(m.normal.get_x() != 0){
+            double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
+                                   (a.get_velocity().get_x() + b.get_mass() / a.get_mass() -
+                                    e * (b.get_velocity().get_x() - a.get_velocity().get_x()));
+            double final_speed_a = e * (b.get_velocity().get_x() - a.get_velocity().get_x()) + final_speed_b;
+            b.set_velocity(final_speed_b,b.get_velocity().get_y());
 
-
-            }
+            a.set_velocity(final_speed_a,a.get_velocity().get_y());
         }
     }
 
+
+
+
+}
+
+void calculate_manifold(Rectangle& a, Rectangle& b, Manifold& m){
 
 }
 
