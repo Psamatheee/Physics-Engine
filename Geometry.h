@@ -6,7 +6,7 @@
 #define ENGINE_GEOMETRY_H
 #include <cmath>
 enum class Type {Base, Circle, AABB};
-enum class Boundary {Top, Right, Bottom, Left, None};
+enum class Boundary {Top, Right, Bottom, Left, TR, TL, BR, BL, None};
 
 class Vec{
         public:

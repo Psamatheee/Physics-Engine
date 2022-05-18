@@ -64,7 +64,7 @@ public:
     friend bool does_intersect(Body& a, Body& b);
     friend bool operator==(Body a, Body b);
     friend bool operator!=(Body a, Body b);
-
+double static constexpr gravity = 370.37475;
 
 private:
     Shape& shape;

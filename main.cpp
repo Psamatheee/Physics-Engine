@@ -17,24 +17,18 @@ public:
     };
     void add_body(Body* body){bodies.push_back(body);}
     void update_physics(double dt){
-      //  std::cout<<bodies.size()<<"\n";
         for(Body* body : bodies){
             body->integrate(dt,w,h);
             body->set_current(body->get_position());
 
         }
-      //  std::cout<<"eeeeeeeee\n";
         phase.generate_pairs();
         std::vector<Pair> pairs  = phase.get_pairs();
-        //std::cout<<"size\n";
-        //std::cout<<pairs.size()<<"\n";
         for(Pair pair : pairs){
             if(pair.a->get_shape().intersects(pair.b->get_shape()) || pair.b->get_shape().intersects(pair.a->get_shape())/*does_intersect(*pair.a,*pair.b)*/){
                 Body& aa = *pair.a;
                 Body& bb = *pair.b;
 
-               // Body& a = *pair.a;
-              //  Body& b = *pair.b;
                 double e = std::min(aa.get_e(), bb.get_e());
                 Vec a_pos =aa.get_position();
                 Vec b_pos =bb.get_position();
@@ -42,8 +36,6 @@ public:
                 collision_normal.normalize();
                 Manifold m = Manifold{aa,bb,e,collision_normal };
                 set_new_speeds(aa,bb,m);
-               // aa.set_position(aa.get_prev());
-                //bb.set_position(bb.get_prev());
                 position_correction(aa,bb,m);
 
             }
@@ -60,11 +52,7 @@ public:
             Vec render_pos{body->get_prev().get_x() * a + body->get_curr().get_x() * (1 - a), body->get_prev().get_y() * a + body->get_curr().get_y() * (1 - a)};
             body->set_render(render_pos);
             body->set_previous(body->get_curr());
-          //  std::cout<<"render render render\n";
-          //  std::cout<<body->get_render().get_x()<<"\n";
-          //  std::cout<<body->get_render().get_y()<<"\n";
         }
-       // std::cout << "ee\n";
     }
 
     std::vector<Body*> get_bodies() const {return bodies;}
@@ -89,13 +77,6 @@ struct DrawBodies{
             bodies.push_back(draw_body);
         }
     }
-    void draw_state(State& state, sf::RenderWindow& window){
-        for(DrawBody& body : bodies){
-            window.draw(body);
-
-        }
-
-    }
     std::vector<DrawBody> bodies;
 };
 
@@ -105,44 +86,37 @@ struct DrawBodies{
 
 
 int main() {
+    //text stuff for velocities
     sf::Font font;
-    if (!font.loadFromFile("arial.ttf"))
-    {
-        // error...
-    }
+    font.loadFromFile("arial.ttf");
     sf::Text texta;
     sf::Text textb;
-    texta.setFont(font); // font is a sf::Font
-    textb.setFont(font); // font is a sf::Font
-
-
-// set the character size
+    texta.setFont(font);
+    textb.setFont(font);
     texta.setCharacterSize(40); // in pixels, not points!
     textb.setCharacterSize(40); // in pixels, not points!
-
-// set the color
     texta.setFillColor(sf::Color(22, 23, 23));
     textb.setFillColor(sf::Color(22, 23, 23));
+
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Simple Physics Engine");
     double h = window.getSize().y;
     double w = window.getSize().x;
     Circle circ{100, Vec{w / 2, h / 2}};
-    Circle circ2{150, Vec{500, 500}};
+    Circle circ2{150, Vec{500, 700}};
     Circle circ4{200, Vec{200, 200}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
-    AABB ab{Vec{50,10}, Vec{1050,100}};
-    Body bod3{ab, 0.75, 9,Vec{500,10}};
-   Body body2{circ2, 0.75, 3, Vec{100, 500}};
+    AABB ab{Vec{50,10}, Vec{400,100}};
+    Body bod3{ab, 0.75, 2,Vec{500,0}};
+   Body body2{circ2, 0.75, 3, Vec{0, 0}};
    Body body{circ, 0.75, 1, Vec{300, 300}};
+   AABB ab2{Vec{300,200}, Vec{400,380}};
+   Body bod4{ab2, 0.75, 2.5,Vec{500,500}};
 
-    AABB ab2{Vec{300,100}, Vec{750,280}};
-   Body bod4{ab2, 0.75, 0.5,Vec{100,100}};
-
-    State state{w,h};
+   State state{w,h};
    state.add_body(&bod3);
     state.add_body(&body);
     state.add_body(&body2);
-    state.add_body(&bod4);
+   state.add_body(&bod4);
     DrawBodies draw_bodies{};
     draw_bodies.update(state);
 
@@ -150,7 +124,6 @@ int main() {
     double dt = 1 / fps;
     sf::Clock clock;
     double accum = 0;
-//bool started_resolution = false;
     while (window.isOpen()) {
 
         sf::Event event;
@@ -186,7 +159,7 @@ int main() {
          for(const DrawBody& bodd : draw_bodies.bodies){
             window.draw(bodd);
         }
-         window.draw(texta);
+      //   window.draw(texta);
     //    window.draw(textb);
         window.display();
     }

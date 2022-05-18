@@ -10,6 +10,10 @@
 
 
 void Body::integrate(double dt, double w, double h) {
+//    v += (1/m * F) * dt
+    double force = gravity*mass;
+    Vec v{velocity.get_x(),velocity.get_y() - gravity*dt};
+    set_velocity(v.get_x(),v.get_y());
     Vec dr{dt * velocity.get_x(), dt * velocity.get_y()};
     double new_x = get_position().get_x() + dr.get_x();
     double new_y = get_position().get_y() + dr.get_y();
@@ -41,28 +45,64 @@ bool Body::collides_wall(double h, double w){
     if(bound == Boundary::None) return false;
     switch (bound) {
         case Boundary::Top:
-            set_velocity(get_velocity().get_x(), get_velocity().get_y() * -1);
-            pen = get_position().get_y() + get_shape().get_radius() - h;
+            set_velocity(get_velocity().get_x(), get_velocity().get_y() * rest_const * -1);
+            if(shape.get_type()==Type::Circle) pen = get_position().get_y() + get_shape().get_radius() - h;
+            if(shape.get_type()== Type::AABB) pen = shape.get_max().get_y()-h;
             normal.set_x(0);
             normal.set_y(1);
             break;
         case Boundary::Bottom:
-            set_velocity(get_velocity().get_x(), get_velocity().get_y() * -1);
-            pen = -get_position().get_y()+ get_shape().get_radius();
+            set_velocity(get_velocity().get_x(), get_velocity().get_y()* rest_const * -1);
+            if(shape.get_type()==Type::Circle) pen = -get_position().get_y()+ get_shape().get_radius();
+            if(shape.get_type()== Type::AABB) pen = -shape.get_min().get_y();
             normal.set_x(0);
             normal.set_y(-1);
             break;
         case Boundary::Right:
-            set_velocity(get_velocity().get_x() * -1, get_velocity().get_y() );
-            pen = get_position().get_x()+ get_shape().get_radius() - w;
+            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() );
+            if(shape.get_type()==Type::Circle) pen = get_position().get_x()+ get_shape().get_radius() - w;
+            if(shape.get_type()== Type::AABB) pen = shape.get_max().get_x()-w;
             normal.set_x(1);
             normal.set_y(0);
             break;
         case Boundary::Left:
-            set_velocity(get_velocity().get_x() * -1, get_velocity().get_y() );
-            pen = -get_position().get_x()+ get_shape().get_radius();
+            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() );
+            if(shape.get_type()==Type::Circle) pen = -get_position().get_x()+ get_shape().get_radius();
+            if(shape.get_type()== Type::AABB) pen = -shape.get_min().get_x();
             normal.set_x(-1);
             normal.set_y(0);
+            break;
+        case Boundary::TL:
+            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() * rest_const * -1 );
+            if(shape.get_type()==Type::Circle) pen = get_position().get_y() + get_shape().get_radius() - h;
+            if(shape.get_type()== Type::AABB) pen = shape.get_max().get_y()-h;
+            normal.set_x(-1);
+            normal.set_y(1);
+            normal.normalize();
+            break;
+        case Boundary::BL:
+            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y()* rest_const * -1 );
+            if(shape.get_type()==Type::Circle) pen = -get_position().get_y()+ get_shape().get_radius();
+            if(shape.get_type()== Type::AABB) pen = -shape.get_min().get_y();
+            normal.set_x(-1);
+            normal.set_y(-1);
+            normal.normalize();
+            break;
+        case Boundary::BR:
+            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y()* rest_const * -1 );
+            if(shape.get_type()==Type::Circle) pen = -get_position().get_y()+ get_shape().get_radius();
+            if(shape.get_type()== Type::AABB) pen = -shape.get_min().get_y();
+            normal.set_x(1);
+            normal.set_y(-1);
+            normal.normalize();
+            break;
+        case Boundary::TR:
+            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() * rest_const * -1 );
+            if(shape.get_type()==Type::Circle) pen = get_position().get_y() + get_shape().get_radius() - h;
+            if(shape.get_type()== Type::AABB) pen = shape.get_max().get_y()-h;
+            normal.set_x(1);
+            normal.set_y(1);
+            normal.normalize();
             break;
 
     }
@@ -129,6 +169,12 @@ void calculate_manifold_AABBvsCircle(Body& a, Body& b, Manifold& m){
     Vec b_pos = b.get_position();
     Vec a_pos = closest;
     Vec centreLine = b_pos - a_pos;
+    if(closest.get_x() < aa.max.get_x() && closest.get_x() >aa.min.get_x() && closest.get_y() > aa.min.get_y() && closest.get_y() < aa.max.get_y()){
+       b.set_position(closest);
+       centreLine = Vec{centreLine.get_x()*-1, centreLine.get_y()*-1};
+
+    }
+
 
     centreLine.normalize();
     // m.penetration = get_depth(b.get_shape(), a.get_shape());

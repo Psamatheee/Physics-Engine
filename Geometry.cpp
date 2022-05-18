@@ -53,8 +53,17 @@ bool Circle::intersects(Shape &shape) {
 }
 
 Boundary Circle::collides_boundary(double w, double h) {
-    if(get_position().get_y() + get_radius() >= h) return Boundary::Top;
-    if( get_position().get_y() - get_radius() <= 0  ) return Boundary::Bottom;
+
+    if(get_position().get_y() + get_radius() > h){
+        if(get_position().get_x() + get_radius() >= w  ) return Boundary::TR;
+        if(get_position().get_x() - get_radius() <= 0  ) return Boundary::TL;
+        return Boundary::Top;
+    }
+    if( get_position().get_y() - get_radius() <= 0  ){
+        if(get_position().get_x() + get_radius() >= w) return Boundary::BR;
+        if(get_position().get_x() - get_radius() <= 0) return Boundary::BL;
+        return Boundary::Bottom;
+    }
     if(get_position().get_x() + get_radius() >= w  ) return Boundary::Right;
     if(get_position().get_x() - get_radius() <= 0  ) return Boundary::Left;
     return Boundary::None;
@@ -95,7 +104,19 @@ Vec get_closest_point(Rectangle& r, Circle& c){
     double y = centre.get_y();
     double eeee = 0;
     if(x < r.max.get_x() && x>r.min.get_x() && y > r.min.get_y() && y < r.max.get_y()){
-        eeee = -1;
+       double up = r.max.get_y() - y;
+       double down = y - r.min.get_y();
+       double left = x-r.min.get_x();
+       double right = r.max.get_x()- x;
+       if(up < down && up < left && up < right){
+           return Vec{x,r.max.get_y()};
+       }else if( down < left && down < right && down < up){
+           return Vec{x,r.min.get_y()};
+       }else if(left < down && left < right && left<up){
+           return Vec{r.min.get_x(), y};
+       }else{
+           return Vec{r.max.get_x(),y};
+       }
     }
     if(x < r.min.get_x()){
         if(y>r.max.get_y()){
@@ -152,8 +173,18 @@ bool AABB::intersects(Shape& shape){
 }
 
 Boundary AABB::collides_boundary(double w, double h) {
-    if(max.get_y() > h /*|| min.get_y() > h*/) return Boundary::Top;
-    if(min.get_y() < 0) return Boundary::Bottom;
+    if(max.get_y() > h){
+        if(max.get_x() > w  ) return Boundary::TR;
+        if(min.get_x() < 0) return Boundary::TL;
+        return Boundary::Top;
+    }
+    if( min.get_y() < 0  ){
+        if(max.get_x() > w) return Boundary::BR;
+        if(min.get_x() < 0) return Boundary::BL;
+        return Boundary::Bottom;
+    }
+
+
     if(max.get_x() > w ) return Boundary::Right;
     if(min.get_x() < 0) return Boundary::Left;
     return Boundary::None;
