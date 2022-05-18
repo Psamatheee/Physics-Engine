@@ -156,7 +156,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
     if(a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::AABB){
         Vec relat_velocity = b.get_velocity() - a.get_velocity();
 
-        if (dotProd(relat_velocity, r) > 0) return;
+       // if (dotProd(relat_velocity, r) > 0) return;
        //already know it's intersecting
         double e = std::min(a.get_e(), b.get_e());
        Rectangle aa{a.get_shape().get_min(),a.get_shape().get_max()};
@@ -226,25 +226,36 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
        }
 
        if(m.normal.get_y() != 0){
-         //  double final_b = 1/(a.get_mass() + b.get_mass()) * (a.get_mass()*a.get_velocity().get_y() + b.get_mass()*b.get_velocity().get_y()+a.get_mass()*e*(a.get_velocity().get_y() + b.get_velocity().get_y()));
-         //  double final_a = final_b - e*(a.get_velocity().get_y() - b.get_velocity().get_y());
+           double final_b = (1/(a.get_mass() + b.get_mass())) * (a.get_mass()*a.get_velocity().get_y() + b.get_mass()*b.get_velocity().get_y()-a.get_mass()*e*(-a.get_velocity().get_y() + b.get_velocity().get_y()));
+           double final_a = final_b + e*(a.get_velocity().get_y() + b.get_velocity().get_y());
          //
-           double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
+         /*  double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
                                   (a.get_velocity().get_y() + b.get_mass() / a.get_mass() -
                                    e * (b.get_velocity().get_y() - a.get_velocity().get_y()));
-           double final_speed_a = e * (b.get_velocity().get_y() - a.get_velocity().get_y()) + final_speed_b;
-           b.set_velocity(b.get_velocity().get_x(),final_speed_b);
-            a.set_velocity(a.get_velocity().get_x(),final_speed_a);
-            std::cout << "VELOCITY " << b.get_velocity().get_x() << " " << b.get_velocity().get_y() << "\n";
+           double final_speed_a = e * (b.get_velocity().get_y() - a.get_velocity().get_y()) + final_speed_b;*/
+           b.set_velocity(b.get_velocity().get_x(),final_b);
+            a.set_velocity(a.get_velocity().get_x(),final_a);
+          //  std::cout << "VELOCITY " << b.get_velocity().get_x() << " " << b.get_velocity().get_y() << "\n";
        }
         if(m.normal.get_x() != 0){
-            double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
+           /* double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
                                    (a.get_velocity().get_x() + b.get_mass() / a.get_mass() -
                                     e * (b.get_velocity().get_x() - a.get_velocity().get_x()));
             double final_speed_a = e * (b.get_velocity().get_x() - a.get_velocity().get_x()) + final_speed_b;
             b.set_velocity(final_speed_b,b.get_velocity().get_y());
 
-            a.set_velocity(final_speed_a,a.get_velocity().get_y());
+            a.set_velocity(final_speed_a,a.get_velocity().get_y());*/
+            double final_b = (1/(a.get_mass() + b.get_mass())) * (a.get_mass()*a.get_velocity().get_x() + b.get_mass()*b.get_velocity().get_x()-a.get_mass()*e*(-a.get_velocity().get_x() + b.get_velocity().get_x()));
+            double final_a = final_b + e*(a.get_velocity().get_x() + b.get_velocity().get_x());
+            //
+            /*  double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
+                                     (a.get_velocity().get_x() + b.get_mass() / a.get_mass() -
+                                      e * (b.get_velocity().get_x() - a.get_velocity().get_x()));
+              double final_speed_a = e * (b.get_velocity().get_x() - a.get_velocity().get_x()) + final_speed_b;*/
+            b.set_velocity(final_b,b.get_velocity().get_y());
+            a.set_velocity(final_a,a.get_velocity().get_y());
+
+
         }
     }
 

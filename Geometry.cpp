@@ -89,7 +89,7 @@ double get_depth(Shape& a, Shape& b) {
 void AABB::set_position(double xx, double yy) {
     double width = max.get_x() - min.get_x();
     double height = max.get_y() - min.get_y();
-    std::cout<<width << " "<<height<<"\n";
+  //  std::cout<<width << " "<<height<<"\n";
     min.set_x(xx - width);
     min.set_y(yy-height);
     max.set_y(yy);
@@ -100,7 +100,9 @@ bool AABB::intersects(Shape& shape){
     if(shape.get_type() == Type::AABB){
         if (min.get_x() > shape.get_max().get_x() || max.get_x() < shape.get_min().get_x()) return false;
         // check if there is separation along the y-.get_x()is
-        if (min.get_y() > shape.get_max().get_x()|| max.get_x() < shape.get_min().get_y()) return false;
+        if (min.get_y() > shape.get_max().get_y()|| max.get_y() < shape.get_min().get_y()) return false;
+
+        std::cout << "inter\n";
         return true;
     }
     return false;

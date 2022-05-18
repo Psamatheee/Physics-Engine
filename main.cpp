@@ -16,17 +16,17 @@ public:
     };
     void add_body(Body* body){bodies.push_back(body);}
     void update_physics(double dt){
-        std::cout<<bodies.size()<<"\n";
+      //  std::cout<<bodies.size()<<"\n";
         for(Body* body : bodies){
             body->integrate(dt,w,h);
             body->set_current(body->get_position());
 
         }
-        std::cout<<"eeeeeeeee\n";
+      //  std::cout<<"eeeeeeeee\n";
         phase.generate_pairs();
         std::vector<Pair> pairs  = phase.get_pairs();
-        std::cout<<"size\n";
-        std::cout<<pairs.size()<<"\n";
+        //std::cout<<"size\n";
+        //std::cout<<pairs.size()<<"\n";
         for(Pair pair : pairs){
             if(does_intersect(*pair.a,*pair.b)){
                 Body& aa = *pair.a;
