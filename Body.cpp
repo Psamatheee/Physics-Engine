@@ -108,7 +108,7 @@ bool Body::collides_wall(double h, double w){
     }
 
         const double slop = 0.01; // usually 0.01 to 0.1
-        const double percent = 0.2; // usually 20% to 80%
+        const double percent = 0.4; // usually 20% to 80%
 
         Vec correction = (std::max(pen - slop, 0.0) / (get_inv_mass() ) * percent) * normal ;
         Vec a_pos = get_position();

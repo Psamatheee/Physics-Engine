@@ -103,17 +103,17 @@ int main() {
     double w = window.getSize().x;
     Circle circ{100, Vec{w / 2, h / 2}};
     Circle circ2{150, Vec{500, 700}};
-    Circle circ4{200, Vec{200, 200}};
+    Circle circ4{200, Vec{1000, 900}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
     AABB ab{Vec{50,10}, Vec{400,100}};
-    Body bod3{ab, 0.75, 2,Vec{500,0}};
-   Body body2{circ2, 0.75, 3, Vec{0, 0}};
-   Body body{circ, 0.75, 1, Vec{300, 300}};
-   AABB ab2{Vec{300,200}, Vec{400,380}};
-   Body bod4{ab2, 0.75, 2.5,Vec{500,500}};
+    Body bod3{ab, 0.75, 2,Vec{0,0}};
+   Body body2{circ4, 0.75, 3, Vec{0, 0}};
+   Body body{circ, 0.75, 1, Vec{0, 300}};
+   AABB ab2{Vec{300,500}, Vec{600,780}};
+   Body bod4{ab2, 0.75, 2.5,Vec{0,0}};
 
    State state{w,h};
-   state.add_body(&bod3);
+  // state.add_body(&bod3);
     state.add_body(&body);
     state.add_body(&body2);
    state.add_body(&bod4);
@@ -159,8 +159,8 @@ int main() {
          for(const DrawBody& bodd : draw_bodies.bodies){
             window.draw(bodd);
         }
-      //   window.draw(texta);
-    //    window.draw(textb);
+         window.draw(texta);
+      //  window.draw(textb);
         window.display();
     }
 
