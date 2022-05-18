@@ -205,7 +205,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
            if(r.get_y() <= 0){
                double x_pen = aa.max.get_x()-bb.min.get_x();
                double y_pen = bb.max.get_y()-aa.min.get_y();
-               if(bb.min.get_y() < aa.min.get_y() || x_pen<y_pen  ){
+               if(bb.min.get_y() > aa.min.get_y() || x_pen<y_pen  ){
                    m.penetration = x_pen;
                    m.normal = Vec{1,0};
                }else{
@@ -225,8 +225,8 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
                }
            }
        }
-
-        if (dotProd(relat_velocity, m.normal) > 0) return;
+       double dot_prod = dotProd(relat_velocity, m.normal);
+        if (dot_prod > 0) return;
 
        if(m.normal.get_y() != 0){
            double inv_sum_mass = 1/(a.get_mass()+b.get_mass());
