@@ -14,11 +14,17 @@ void Body::integrate(double dt, double w, double h) {
     double force = gravity*mass;
     Vec v{velocity.get_x(),velocity.get_y() - gravity*dt};
     set_velocity(v.get_x(),v.get_y());
+       //count++;
+
+      // if(std::abs(velocity.get_x()) < 0.1) set_velocity(0,velocity.get_x());
+
+
     Vec dr{dt * velocity.get_x(), dt * velocity.get_y()};
+    collides_wall(h,w,dt);
     double new_x = get_position().get_x() + dr.get_x();
     double new_y = get_position().get_y() + dr.get_y();
     set_position(new_x , new_y);
-    collides_wall(h,w);
+
 
 
 }
@@ -38,9 +44,10 @@ bool compare(Pair& l, Pair& r ){
 
 
 
-bool Body::collides_wall(double h, double w){
+bool Body::collides_wall(double h, double w, double dt){
     double pen;
     Vec normal{};
+    double friction = 5;
     Boundary bound = get_shape().collides_boundary(w,h);
     if(bound == Boundary::None) return false;
     switch (bound) {
@@ -57,6 +64,23 @@ bool Body::collides_wall(double h, double w){
             if(shape.get_type()== Type::AABB) pen = -shape.get_min().get_y();
             normal.set_x(0);
             normal.set_y(-1);
+            if (velocity.get_x() < 0){
+                Vec fv{velocity.get_x() + friction*dt,velocity.get_y() };
+                if(fv.get_x() > 0) {
+                    set_velocity(0,velocity.get_y());
+                }else{
+
+                    set_velocity(fv.get_x(),fv.get_y());
+                }
+            }if(velocity.get_x()>0){
+        Vec fv{velocity.get_x() - friction*dt,velocity.get_y() };
+        if(fv.get_x() < 0) {
+            set_velocity(0,velocity.get_y());
+        }else{
+
+            set_velocity(fv.get_x(),fv.get_y());
+        }
+    }
             break;
         case Boundary::Right:
             set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() );
@@ -119,7 +143,7 @@ bool Body::collides_wall(double h, double w){
 
 
 
-    return true;
+    return false;
 }
 
 bool operator==(Body a, Body b) {

@@ -103,14 +103,14 @@ int main() {
     double w = window.getSize().x;
     Circle circ{100, Vec{w / 2, h / 2}};
     Circle circ2{150, Vec{500, 700}};
-    Circle circ4{200, Vec{1000, 900}};
+    Circle circ4{100, Vec{1000, 900}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
     AABB ab{Vec{50,10}, Vec{400,100}};
     Body bod3{ab, 0.75, 2,Vec{0,0}};
-   Body body2{circ4, 0.75, 3, Vec{0, 0}};
-   Body body{circ, 0.75, 1, Vec{0, 300}};
+   Body body2{circ4, 0.75, 3, Vec{100, 300}};
+   Body body{circ, 0.75, 1, Vec{-240, 300}};
    AABB ab2{Vec{300,500}, Vec{600,780}};
-   Body bod4{ab2, 0.75, 2.5,Vec{0,0}};
+   Body bod4{ab2, 0.75, 2.5,Vec{220,100}};
 
    State state{w,h};
   // state.add_body(&bod3);
