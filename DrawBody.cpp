@@ -24,10 +24,10 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         quad[3].position = sf::Vector2f(quad[2].position.x  ,( quad[2].position.y-height));
 
 
-        quad[0].color = sf::Color::Black;
-        quad[1].color = sf::Color::Black;
-        quad[2].color = sf::Color::Black;
-        quad[3].color = sf::Color::Black;
+        quad[0].color = sf::Color::White;
+        quad[1].color = sf::Color::White;
+        quad[2].color = sf::Color::White;
+        quad[3].color = sf::Color::White;
     /*    std::cout <<"quad: " << quad[0].position.x << " " << quad[0].position.y <<"\n";
         std::cout <<"quad: " << quad[1].position.x << " " << quad[1].position.y <<"\n";
         std::cout <<"quad: " << quad[2].position.x << " " << quad[2].position.y <<"\n";

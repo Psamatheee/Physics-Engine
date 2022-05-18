@@ -4,6 +4,7 @@
 #include <vector>
 //#include "Body.cpp"
 #include "DrawBody.cpp"
+#include <string>
 
 
 
@@ -28,20 +29,22 @@ public:
         //std::cout<<"size\n";
         //std::cout<<pairs.size()<<"\n";
         for(Pair pair : pairs){
-            if(does_intersect(*pair.a,*pair.b)){
+            if(pair.a->get_shape().intersects(pair.b->get_shape()) || pair.b->get_shape().intersects(pair.a->get_shape())/*does_intersect(*pair.a,*pair.b)*/){
                 Body& aa = *pair.a;
                 Body& bb = *pair.b;
 
-                Body& a = *pair.a;
-                Body& b = *pair.b;
-                double e = std::min(a.get_e(), b.get_e());
-                Vec a_pos =a.get_position();
-                Vec b_pos =b.get_position();
+               // Body& a = *pair.a;
+              //  Body& b = *pair.b;
+                double e = std::min(aa.get_e(), bb.get_e());
+                Vec a_pos =aa.get_position();
+                Vec b_pos =bb.get_position();
                 Vec collision_normal = b_pos - a_pos;
                 collision_normal.normalize();
-                Manifold m = Manifold{a,b,e,collision_normal };
+                Manifold m = Manifold{aa,bb,e,collision_normal };
                 set_new_speeds(aa,bb,m);
-                position_correction(aa,bb,m);
+               // aa.set_position(aa.get_prev());
+                //bb.set_position(bb.get_prev());
+               // position_correction(aa,bb,m);
 
             }
 
@@ -102,6 +105,24 @@ struct DrawBodies{
 
 
 int main() {
+    sf::Font font;
+    if (!font.loadFromFile("arial.ttf"))
+    {
+        // error...
+    }
+    sf::Text texta;
+    sf::Text textb;
+    texta.setFont(font); // font is a sf::Font
+    textb.setFont(font); // font is a sf::Font
+
+
+// set the character size
+    texta.setCharacterSize(40); // in pixels, not points!
+    textb.setCharacterSize(40); // in pixels, not points!
+
+// set the color
+    texta.setFillColor(sf::Color(22, 23, 23));
+    textb.setFillColor(sf::Color(22, 23, 23));
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Simple Physics Engine");
     double h = window.getSize().y;
     double w = window.getSize().x;
@@ -109,13 +130,13 @@ int main() {
     Circle circ2{150, Vec{500, 500}};
     Circle circ4{200, Vec{200, 200}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
-    AABB ab2{Vec{400,200}, Vec{550,350}};
-    Body bod3{ab2, 0.75, 0.5,Vec{600,600}};
+    AABB ab{Vec{300,300}, Vec{750,750}};
+    Body bod3{ab, 0.75, 4.5,Vec{500,450}};
    // Body body2{circ2, 0.75, 3, Vec{100, 500}};
    // Body body{circ, 0.75, 1, Vec{300, 300}};
 
-    AABB ab{Vec{600,600}, Vec{700,700}};
-    Body bod4{ab, 0.75, 4.5,Vec{50,60}};
+    AABB ab2{Vec{300,50}, Vec{750,280}};
+    Body bod4{ab2, 0.75, 0.5,Vec{700,300}};
 
     State state{w,h};
     state.add_body(&bod3);
@@ -137,7 +158,7 @@ int main() {
             if (event.type == sf::Event::Closed) window.close();
         }
 
-        window.clear(sf::Color::Magenta);
+
         sf::Time frame_t = clock.restart();
         accum += frame_t.asSeconds();
 
@@ -154,11 +175,19 @@ int main() {
 
         double a = accum / dt;
         state.set_render_pos(a);
-
+        window.clear(sf::Color(22, 23, 23));
+        std::string bod4_str = std::to_string(bod4.get_velocity().get_x()) + "\n" + std::to_string(bod4.get_velocity().get_y());
+        std::string bod3_str = std::to_string(bod3.get_velocity().get_x()) + "\n" + std::to_string(bod3.get_velocity().get_y());
+        texta.setString(bod4_str);
+        textb.setString(bod3_str);
+        texta.setPosition(bod4.get_shape().get_min().get_x(),h-bod4.get_position().get_y());
+        textb.setPosition(bod3.get_shape().get_min().get_x(),h-bod3.get_position().get_y());
         //draw_bodies.draw_state(state,window);
          for(const DrawBody& bodd : draw_bodies.bodies){
             window.draw(bodd);
         }
+         window.draw(texta);
+        window.draw(textb);
         window.display();
     }
 

@@ -130,7 +130,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
         m.penetration = get_depth(b.get_shape(), a.get_shape());
         m.normal = centreLine;
         Vec relat_velocity = b.get_velocity() - a.get_velocity();
-        if (dotProd(relat_velocity, centreLine) > 0) return;
+      //  if (dotProd(relat_velocity, centreLine) > 0) return;
 
 
         //these are the initial velocity compnenets along the centreline of the 2 circles
@@ -161,6 +161,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
         double e = std::min(a.get_e(), b.get_e());
        Rectangle aa{a.get_shape().get_min(),a.get_shape().get_max()};
         Rectangle bb{b.get_shape().get_min(),b.get_shape().get_max()};
+        Vec rr = Vec{(bb.max.get_x()+bb.min.get_x())/2 - (aa.max.get_x()+aa.min.get_x())/2 ,(bb.max.get_y()+bb.min.get_y())/2 - (aa.max.get_y()+aa.min.get_y())/2  };
        if(r.get_x()<= 0){
            if(r.get_y() <= 0){
                //b intersects fully on left
@@ -168,7 +169,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
                    m.normal = Vec{-1,0};
                    m.penetration = bb.max.get_x() - aa.min.get_x();
                    //b intersects fully on bottom
-               }else if(bb.min.get_x() >= aa.max.get_x()){
+               }else if(bb.min.get_x() > aa.max.get_x()){
                    m.normal = Vec{0,-1};
                    m.penetration = bb.max.get_y() - aa.min.get_y();
                    //b intersects left and bottom
@@ -185,7 +186,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
                }
            }else{
                //b intersect fully top
-               if(bb.min.get_x() >= aa.min.get_x()){
+               if(bb.min.get_x() > aa.min.get_x()){
                    m.penetration = aa.max.get_y() - bb.min.get_y();
                    m.normal = Vec{0,1};
                }else{
@@ -225,9 +226,13 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
            }
        }
 
+        if (dotProd(relat_velocity, m.normal) > 0) return;
+
        if(m.normal.get_y() != 0){
-           double final_b = (1/(a.get_mass() + b.get_mass())) * (a.get_mass()*a.get_velocity().get_y() + b.get_mass()*b.get_velocity().get_y()-a.get_mass()*e*(-a.get_velocity().get_y() + b.get_velocity().get_y()));
-           double final_a = final_b + e*(a.get_velocity().get_y() + b.get_velocity().get_y());
+           double inv_sum_mass = 1/(a.get_mass()+b.get_mass());
+           double init_momentum = b.get_mass()*b.get_velocity().get_y() + a.get_mass()*a.get_velocity().get_y();
+           double final_b = inv_sum_mass * (init_momentum + a.get_mass()*e*(a.get_velocity().get_y()  - b.get_velocity().get_y()));
+           double final_a = final_b - e*(a.get_velocity().get_y() - b.get_velocity().get_y());
          //
          /*  double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
                                   (a.get_velocity().get_y() + b.get_mass() / a.get_mass() -
@@ -245,8 +250,10 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
             b.set_velocity(final_speed_b,b.get_velocity().get_y());
 
             a.set_velocity(final_speed_a,a.get_velocity().get_y());*/
-            double final_b = (1/(a.get_mass() + b.get_mass())) * (a.get_mass()*a.get_velocity().get_x() + b.get_mass()*b.get_velocity().get_x()-a.get_mass()*e*(-a.get_velocity().get_x() + b.get_velocity().get_x()));
-            double final_a = final_b + e*(a.get_velocity().get_x() + b.get_velocity().get_x());
+            double inv_sum_mass = 1/(a.get_mass()+b.get_mass());
+            double init_momentum = b.get_mass()*b.get_velocity().get_x() + a.get_mass()*a.get_velocity().get_x();
+            double final_b = inv_sum_mass * (init_momentum + a.get_mass()*e*(a.get_velocity().get_x()  - b.get_velocity().get_x()));
+            double final_a = final_b - e*(a.get_velocity().get_x() - b.get_velocity().get_x());
             //
             /*  double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
                                      (a.get_velocity().get_x() + b.get_mass() / a.get_mass() -

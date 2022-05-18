@@ -50,7 +50,7 @@ bool does_rect_intersect(Rectangle& r1, Rectangle& r2){
     // check if there is separation along the x-axis
     if (r1.min.get_x() > r2.max.get_x() || r1.max.get_x() < r2.min.get_x()) return false;
     // check if there is separation along the y-.get_x()is
-    if (r1.min.get_y() > r2.max.get_x()|| r1.max.get_x() < r2.min.get_y()) return false;
+    if (r1.min.get_y() > r2.max.get_y()|| r1.max.get_y() < r2.min.get_y()) return false;
     return true;
 }
 
