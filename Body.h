@@ -12,7 +12,11 @@
 class Body{
 public:
     Body(Shape& shape, double restitution_const, double m, Vec vect) : shape(shape), rest_const{restitution_const}, mass{m}{
-        inv_mass= 1/mass;
+        if(mass == 0){
+            inv_mass = 0;
+        }else{
+            inv_mass = 1/mass;
+        }
         velocity.set_x(vect.get_x());
         velocity.set_y(vect.get_y());
         current = shape.get_position();

@@ -45,6 +45,10 @@ bool Circle::intersects(Shape &shape) {
         double distance_sqr = pow(centre.get_x() - shape.get_x(),2) + pow(centre.get_y() - shape.get_y(),2);
         return pow(radius + shape.get_radius(),2) >= distance_sqr;
     }
+    if(shape.get_type() == Type::AABB){
+        Circle c{radius,centre};
+        return shape.intersects(c);
+    }
     return false;
 }
 
@@ -85,7 +89,38 @@ double get_depth(Shape& a, Shape& b) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //AABB functions
-
+Vec get_closest_point(Rectangle& r, Circle& c){
+    Vec centre = c.get_position();
+    double x = centre.get_x();
+    double y = centre.get_y();
+    double eeee = 0;
+    if(x < r.max.get_x() && x>r.min.get_x() && y > r.min.get_y() && y < r.max.get_y()){
+        eeee = -1;
+    }
+    if(x < r.min.get_x()){
+        if(y>r.max.get_y()){
+            return Vec{r.min.get_x(), r.max.get_y()};
+        } else if(y < r.min.get_y()){
+            return Vec{r.min.get_x(),r.min.get_y()};
+        }else{
+            return Vec{r.min.get_x(),y};
+        }
+    }else if(x > r.max.get_x()){
+        if(y>r.max.get_y()){
+            return Vec{r.max.get_x(),r.max.get_y()};
+        }else if(y < r.min.get_y()){
+            return Vec{r.max.get_x(),r.min.get_y()};
+        }else{
+            return Vec{r.max.get_x(),y};
+        }
+    }else{
+        if(y>r.max.get_y()){
+            return Vec{x,r.max.get_y()};
+        }else{
+            return Vec{x,r.min.get_y()};
+        }
+    }
+}
 void AABB::set_position(double xx, double yy) {
     double width = max.get_x() - min.get_x();
     double height = max.get_y() - min.get_y();
@@ -104,6 +139,13 @@ bool AABB::intersects(Shape& shape){
 
         std::cout << "inter\n";
         return true;
+    }
+    if(shape.get_type() == Type::Circle){
+        Rectangle r = Rectangle{min,max};
+        Circle c{shape.get_radius(),shape.get_position() };
+        Vec closest = get_closest_point(r, c);
+        double distance_sqr = pow(closest.get_x() - shape.get_x(),2) + pow(closest.get_y() - shape.get_y(),2);
+        return pow( c.get_radius(),2) >= distance_sqr;
     }
     return false;
 

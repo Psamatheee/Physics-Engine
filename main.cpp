@@ -44,7 +44,7 @@ public:
                 set_new_speeds(aa,bb,m);
                // aa.set_position(aa.get_prev());
                 //bb.set_position(bb.get_prev());
-               // position_correction(aa,bb,m);
+                position_correction(aa,bb,m);
 
             }
 
@@ -130,18 +130,18 @@ int main() {
     Circle circ2{150, Vec{500, 500}};
     Circle circ4{200, Vec{200, 200}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
-    AABB ab{Vec{300,300}, Vec{750,750}};
-    Body bod3{ab, 0.75, 4.5,Vec{500,450}};
-   // Body body2{circ2, 0.75, 3, Vec{100, 500}};
-   // Body body{circ, 0.75, 1, Vec{300, 300}};
+    AABB ab{Vec{50,10}, Vec{1050,100}};
+    Body bod3{ab, 0.75, 9,Vec{500,10}};
+   Body body2{circ2, 0.75, 3, Vec{100, 500}};
+   Body body{circ, 0.75, 1, Vec{300, 300}};
 
-    AABB ab2{Vec{300,50}, Vec{750,280}};
-    Body bod4{ab2, 0.75, 0.5,Vec{700,300}};
+    AABB ab2{Vec{300,100}, Vec{750,280}};
+   Body bod4{ab2, 0.75, 0.5,Vec{100,100}};
 
     State state{w,h};
-    state.add_body(&bod3);
-    //state.add_body(&body);
-    //state.add_body(&body2);
+   state.add_body(&bod3);
+    state.add_body(&body);
+    state.add_body(&body2);
     state.add_body(&bod4);
     DrawBodies draw_bodies{};
     draw_bodies.update(state);
@@ -177,17 +177,17 @@ int main() {
         state.set_render_pos(a);
         window.clear(sf::Color(22, 23, 23));
         std::string bod4_str = std::to_string(bod4.get_velocity().get_x()) + "\n" + std::to_string(bod4.get_velocity().get_y());
-        std::string bod3_str = std::to_string(bod3.get_velocity().get_x()) + "\n" + std::to_string(bod3.get_velocity().get_y());
+     //   std::string bod3_str = std::to_string(bod3.get_velocity().get_x()) + "\n" + std::to_string(bod3.get_velocity().get_y());
         texta.setString(bod4_str);
-        textb.setString(bod3_str);
+      //  textb.setString(bod3_str);
         texta.setPosition(bod4.get_shape().get_min().get_x(),h-bod4.get_position().get_y());
-        textb.setPosition(bod3.get_shape().get_min().get_x(),h-bod3.get_position().get_y());
+   //     textb.setPosition(bod3.get_shape().get_min().get_x(),h-bod3.get_position().get_y());
         //draw_bodies.draw_state(state,window);
          for(const DrawBody& bodd : draw_bodies.bodies){
             window.draw(bodd);
         }
          window.draw(texta);
-        window.draw(textb);
+    //    window.draw(textb);
         window.display();
     }
 

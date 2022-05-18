@@ -117,11 +117,55 @@ void position_correction(Body& a, Body& b, Manifold& m){
     b.set_position(new_b);
 }
 
+void calculate_manifold_AABBvsCircle(Body& a, Body& b, Manifold& m){
+    Rectangle aa{a.get_shape().get_min(), a.get_shape().get_max()};
+    Circle bb{b.get_shape().get_radius(), b.get_shape().get_position()};
+    Vec closest = get_closest_point(aa,bb);
+    double distance_sqr = pow(closest.get_x() - bb.get_x(), 2) +
+                          pow(closest.get_y() - bb.get_y(), 2);
+    double penetration = bb.get_radius() - sqrt(distance_sqr);
+    m.penetration = penetration;
+
+    Vec b_pos = b.get_position();
+    Vec a_pos = closest;
+    Vec centreLine = b_pos - a_pos;
+
+    centreLine.normalize();
+    // m.penetration = get_depth(b.get_shape(), a.get_shape());
+    m.normal = centreLine;
+    Vec relat_velocity = b.get_velocity() - a.get_velocity();
+    if (dotProd(relat_velocity, centreLine) > 0) return;
+
+
+    //these are the initial velocity compnenets along the centreline of the 2 circles
+    double initial_speed_a = dotProd(a.get_velocity(), centreLine);
+    double initial_speed_b = dotProd(b.get_velocity(), centreLine);
+
+    double e = std::min(a.get_e(), b.get_e());
+    double final_speed_b = a.get_mass() / (b.get_mass() + a.get_mass()) *
+                           (initial_speed_a + b.get_mass() / a.get_mass() -
+                            e * (initial_speed_b - initial_speed_a));
+    double final_speed_a = e * (initial_speed_b - initial_speed_a) + final_speed_b;
+
+    //get full velocity by adding to the full velocity vector
+    Vec a_along_n = scalar_mult((-initial_speed_a + final_speed_a), centreLine);
+    Vec final_velocity_a = a.get_velocity() + a_along_n;
+    Vec b_along_n = scalar_mult(final_speed_b - initial_speed_b, centreLine);
+    Vec final_velocity_b = b.get_velocity() + b_along_n;
+
+    a.set_velocity(final_velocity_a.get_x(), final_velocity_a.get_y());
+    b.set_velocity(final_velocity_b.get_x(), final_velocity_b.get_y());
+
+
+
+}
 
 void set_new_speeds(Body& a, Body& b, Manifold& m ){
     Vec a_pos = a.get_position();
     Vec b_pos = b.get_position();
     Vec r = b_pos - a_pos;
+    Vec init_a = Vec{a.get_velocity().get_x(),a.get_velocity().get_y()};
+    Vec init_b = Vec{b.get_velocity().get_x(),b.get_velocity().get_y()};
 
     if(a.get_shape().get_type() == Type::Circle && b.get_shape().get_type() == Type::Circle) {
         Vec centreLine = b_pos - a_pos;
@@ -130,7 +174,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
         m.penetration = get_depth(b.get_shape(), a.get_shape());
         m.normal = centreLine;
         Vec relat_velocity = b.get_velocity() - a.get_velocity();
-      //  if (dotProd(relat_velocity, centreLine) > 0) return;
+      if (dotProd(relat_velocity, centreLine) > 0) return;
 
 
         //these are the initial velocity compnenets along the centreline of the 2 circles
@@ -265,15 +309,22 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
 
         }
     }
+    if(a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::Circle){
+        calculate_manifold_AABBvsCircle(a,b,m);
+    }else if(b.get_shape().get_type() == Type::AABB && a.get_shape().get_type() == Type::Circle){
+
+        calculate_manifold_AABBvsCircle(b,a,m);
+    }
+    if(a.get_mass() == 0) a.set_velocity(init_a.get_x(),init_a.get_y());
+    if(b.get_mass() == 0) b.set_velocity(init_b.get_x(),init_b.get_y());
 
 
 
 
 }
 
-void calculate_manifold(Rectangle& a, Rectangle& b, Manifold& m){
 
-}
+
 
 
 class BroadPhase{
