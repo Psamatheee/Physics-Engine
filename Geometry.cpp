@@ -6,6 +6,7 @@
 void Vec::normalize() {
     x = x/size;
     y = y/size;
+    size = 1;
 }
 
 Vec operator-(Vec& v1, Vec& v2){
