@@ -11,19 +11,20 @@
 
 void Body::integrate(double dt, double w, double h) {
 //    v += (1/m * F) * dt
+double friction = 5;
     double force = gravity*mass;
     Vec v{velocity.get_x(),velocity.get_y() - gravity*dt};
     set_velocity(v.get_x(),v.get_y());
        //count++;
 
-      // if(std::abs(velocity.get_x()) < 0.1) set_velocity(0,velocity.get_x());
 
 
     Vec dr{dt * velocity.get_x(), dt * velocity.get_y()};
-    collides_wall(h,w,dt);
+
     double new_x = get_position().get_x() + dr.get_x();
     double new_y = get_position().get_y() + dr.get_y();
     set_position(new_x , new_y);
+    collides_wall(h,w,dt);
 
 
 
@@ -46,99 +47,122 @@ bool compare(Pair& l, Pair& r ){
 
 bool Body::collides_wall(double h, double w, double dt){
     double pen;
+    double x_pen;
+    double y_pen;
     Vec normal{};
-    double friction = 5;
+    double friction = 0;
     Boundary bound = get_shape().collides_boundary(w,h);
-    if(bound == Boundary::None) return false;
+    double slop = 0.01;
     switch (bound) {
+        case Boundary::None:
+            return false;
         case Boundary::Top:
             set_velocity(get_velocity().get_x(), get_velocity().get_y() * rest_const * -1);
-            if(shape.get_type()==Type::Circle) pen = get_position().get_y() + get_shape().get_radius() - h;
-            if(shape.get_type()== Type::AABB) pen = shape.get_max().get_y()-h;
+            if(shape.get_type()==Type::Circle){
+                set_position(get_position().get_x(), h-shape.get_radius() - slop);
+            }
+            if(shape.get_type()== Type::AABB){
+                set_position(get_position().get_x(), h-slop);
+            }
             normal.set_x(0);
             normal.set_y(1);
             break;
         case Boundary::Bottom:
-            set_velocity(get_velocity().get_x(), get_velocity().get_y()* rest_const * -1);
-            if(shape.get_type()==Type::Circle) pen = -get_position().get_y()+ get_shape().get_radius();
-            if(shape.get_type()== Type::AABB) pen = -shape.get_min().get_y();
-            normal.set_x(0);
-            normal.set_y(-1);
-            if (velocity.get_x() < 0){
-                Vec fv{velocity.get_x() + friction*dt,velocity.get_y() };
-                if(fv.get_x() > 0) {
-                    set_velocity(0,velocity.get_y());
-                }else{
 
-                    set_velocity(fv.get_x(),fv.get_y());
-                }
-            }if(velocity.get_x()>0){
-        Vec fv{velocity.get_x() - friction*dt,velocity.get_y() };
-        if(fv.get_x() < 0) {
-            set_velocity(0,velocity.get_y());
-        }else{
-
-            set_velocity(fv.get_x(),fv.get_y());
+            set_velocity(get_velocity().get_x(), get_velocity().get_y() * rest_const * -1);
+        if(shape.get_type()==Type::Circle){
+            set_position(get_position().get_x(),get_shape().get_radius() + 0.01);
+            return true;
         }
-    }
+        if(shape.get_type()== Type::AABB) {
+            set_position(get_shape().get_max().get_x(),get_shape().get_max().get_y()-get_shape().get_min().get_y() + 0.01);
+            return true;
+        }
+            normal.set_x(0);
+            normal.set_y(1);
+
             break;
         case Boundary::Right:
             set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() );
-            if(shape.get_type()==Type::Circle) pen = get_position().get_x()+ get_shape().get_radius() - w;
-            if(shape.get_type()== Type::AABB) pen = shape.get_max().get_x()-w;
+            if(shape.get_type()==Type::Circle){
+                set_position(w-shape.get_radius()-slop,get_position().get_y());
+            }
+            if(shape.get_type()== Type::AABB){
+                set_position(w - slop, get_position().get_y());
+            }
             normal.set_x(1);
             normal.set_y(0);
             break;
         case Boundary::Left:
             set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() );
-            if(shape.get_type()==Type::Circle) pen = -get_position().get_x()+ get_shape().get_radius();
-            if(shape.get_type()== Type::AABB) pen = -shape.get_min().get_x();
+            if(shape.get_type()==Type::Circle){
+                set_position(shape.get_radius()+slop,get_position().get_y());
+            }
+            if(shape.get_type()== Type::AABB){
+                set_position(shape.get_max().get_x()-shape.get_min().get_x() + slop, get_position().get_y());
+            }
             normal.set_x(-1);
             normal.set_y(0);
             break;
         case Boundary::TL:
             set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() * rest_const * -1 );
-            if(shape.get_type()==Type::Circle) pen = get_position().get_y() + get_shape().get_radius() - h;
-            if(shape.get_type()== Type::AABB) pen = shape.get_max().get_y()-h;
+            if(shape.get_type()==Type::Circle){
+                set_position(shape.get_radius()+slop, h-shape.get_radius() - slop);
+            }
+            if(shape.get_type()== Type::AABB){
+                set_position(shape.get_max().get_x()-shape.get_min().get_x() + slop, h-slop);
+            }
             normal.set_x(-1);
             normal.set_y(1);
             normal.normalize();
             break;
         case Boundary::BL:
             set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y()* rest_const * -1 );
-            if(shape.get_type()==Type::Circle) pen = -get_position().get_y()+ get_shape().get_radius();
-            if(shape.get_type()== Type::AABB) pen = -shape.get_min().get_y();
+            if(shape.get_type()==Type::Circle){
+                set_position(shape.get_radius()+slop,get_shape().get_radius() + 0.01);
+                return true;
+            }
+            if(shape.get_type()== Type::AABB) {
+                set_position(shape.get_max().get_x()-shape.get_min().get_x() + slop,get_shape().get_max().get_y()-get_shape().get_min().get_y() + 0.01);
+                return true;
+            }
             normal.set_x(-1);
             normal.set_y(-1);
-            normal.normalize();
+           normal.normalize();
             break;
         case Boundary::BR:
             set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y()* rest_const * -1 );
-            if(shape.get_type()==Type::Circle) pen = -get_position().get_y()+ get_shape().get_radius();
-            if(shape.get_type()== Type::AABB) pen = -shape.get_min().get_y();
+            if(shape.get_type()==Type::Circle){
+                set_position(w-shape.get_radius()-slop,get_shape().get_radius() + 0.01);
+                return true;
+            }
+            if(shape.get_type()== Type::AABB) {
+                set_position(w - slop,get_shape().get_max().get_y()-get_shape().get_min().get_y() + 0.01);
+                return true;
+            }
             normal.set_x(1);
             normal.set_y(-1);
-            normal.normalize();
+         normal.normalize();
             break;
         case Boundary::TR:
             set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() * rest_const * -1 );
-            if(shape.get_type()==Type::Circle) pen = get_position().get_y() + get_shape().get_radius() - h;
-            if(shape.get_type()== Type::AABB) pen = shape.get_max().get_y()-h;
+            if(shape.get_type()==Type::Circle){
+                set_position(w-shape.get_radius()-slop,h-shape.get_radius() - slop);
+                return true;
+            }
+            if(shape.get_type()== Type::AABB) {
+                set_position(w - slop,h-slop);
+                return true;
+            }
             normal.set_x(1);
             normal.set_y(1);
-            normal.normalize();
+           normal.normalize();
             break;
+
 
     }
 
-        const double slop = 0.01; // usually 0.01 to 0.1
-        const double percent = 0.4; // usually 20% to 80%
 
-        Vec correction = (std::max(pen - slop, 0.0) / (get_inv_mass() ) * percent) * normal ;
-        Vec a_pos = get_position();
-        Vec a_correct = get_inv_mass() * correction;
-        Vec new_a = a_pos - a_correct ;
-        set_position(new_a);
 
 
 
