@@ -28,9 +28,9 @@ class Vec{
 
         void normalize();
 
-        friend Vec operator-(Vec& v1, Vec& v2);
-        friend Vec operator+(Vec& v1, Vec& v2);
-        friend Vec operator*(double num, Vec& v);
+        friend Vec operator-(const Vec& v1, const Vec& v2);
+        friend Vec operator+(const Vec& v1,const  Vec& v2);
+        friend Vec operator*(double num, const Vec& v);
 
         double angle_from_xaxis();
 

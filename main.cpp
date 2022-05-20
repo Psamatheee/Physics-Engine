@@ -15,16 +15,20 @@ class State{
 public:
     State(double ww, double hh) : w(ww), h(hh), phase(BroadPhase(bodies)){
     };
-    void add_body(Body* body){bodies.push_back(body);}
-    void update_physics(double dt){
-        for(Body* body : bodies){
-
-            body->integrate(dt,w,h);
-            body->normal = Vec{0,0};
-            body->set_current(body->get_position());
+    void add_body(Body* body){
+        for(Body* bod : bodies){
+            if(bod == body){
+                return;
+            }
+                }
+        bodies.push_back(body);
 
 
         }
+
+
+    void update_physics(double dt){
+
         phase.generate_pairs();
         std::vector<Pair> pairs  = phase.get_pairs();
         for(Pair pair : pairs){
@@ -38,6 +42,13 @@ public:
                 Vec collision_normal = b_pos - a_pos;
                 collision_normal.normalize();
                 Manifold m = Manifold{aa, bb, e, collision_normal};
+                if(pair.a->gravity ==0 && pair.b->gravity!=0){
+                    pair.a->gravity= pair.b->gravity;
+                }
+                if(pair.a->gravity !=0 && pair.b->gravity==0){
+                    pair.b->gravity== pair.a->gravity;
+                }
+
                 set_new_speeds(aa, bb, m);
                 //double  ee = -1.0;
                 pair.b->normal = Vec{m.normal.get_x() * -1, m.normal.get_y() * -1};
@@ -45,6 +56,13 @@ public:
                 position_correction(aa, bb, m);
 
             }
+
+        }for(Body* body : bodies){
+            body->collides_wall(h,w,dt);
+            body->integrate(dt,w,h);
+            body->normal = Vec{0,0};
+            body->set_current(body->get_position());
+
 
         }
 
@@ -77,7 +95,9 @@ struct DrawBodies{
 
     void update(State& state){
         std::vector<Body*> state_bodies = state.get_bodies();
+        bodies.clear();
         for (Body* body : state_bodies){
+
             Body& bod = *body;
             DrawBody draw_body{bod, state.get_h(), sf::Color::White};
             bodies.push_back(draw_body);
@@ -108,26 +128,53 @@ int main() {
     double h = window.getSize().y;
     double w = window.getSize().x;
     Circle circ{100, Vec{w / 2, h / 2}};
-    Circle circ2{150, Vec{900, 200}};
+    Circle circ2{20, Vec{900, 200}};
     Circle circ4{100, Vec{1500, 1200}};
+    Circle circ5{20, Vec{1000, 1200}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
-    AABB ab{Vec{50,10}, Vec{w-1,100}};
+    AABB ab{Vec{1,10}, Vec{w-1,100}};
     AABB ab3{Vec{w-100,200}, Vec{w-50,h-1}};
     Body boddd{ab3,0.75,0, Vec{0,0}};
     Body bod3{ab, 0.75, 0,Vec{0,0}};
    Body body2{circ4, 0.75, 3, Vec{500, 800}};
+    Body body5{circ2, 0.75, 0.5, Vec{500, 800}};
+    Body body6{circ5, 0.75, 0.5, Vec{500, 800}};
    Body body{circ, 0.75, 3, Vec{-200, 500}};
    AABB ab2{Vec{300,500}, Vec{600,780}};
    Body bod4{ab2, 0.75, 2.5,Vec{0,600}};
-
+    std::vector<Body> bodes;
+    std::vector<Circle> shapes;
    State state{w,h};
-   state.add_body(&bod3);
-   state.add_body(&body);
-   state.add_body(&body2);
-   state.add_body(&bod4);
-   state.add_body(&boddd);
+  state.add_body(&bod3);
+   // state.add_body(&body2);
+  // state.add_body(&body);
+
+  state.add_body(&bod4);
+   //state.add_body(&boddd);
+    state.add_body(&body5);
+  //  state.add_body(&body6);
+    std::vector<AABB> boxes;
+    /*
+    for(int i = 0; i < 1; i++){
+        AABB box{Vec{10 + 20.0*i, h-100}, Vec{10 + 20*i + 10.0, h-10}};
+        boxes.push_back(box);
+    }
+
+    std::vector<Body> bodies;
+    for(AABB& box : boxes){
+        Body the_bod{box,0.75,0.5,Vec{0,0}};
+        bodies.push_back(the_bod);
+    }
+
+    for(Body& boder : bodies){
+        state.add_body(&boder);
+    }
+*/ bool added = false;
     DrawBodies draw_bodies{};
     draw_bodies.update(state);
+
+    Circle test{20, Vec{0,0}};
+    Body tester{test,0.75,0.5,Vec{-200,0}};
 
     double fps = 60;
     double dt = 1 / fps;
@@ -139,6 +186,29 @@ int main() {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) window.close();
         }
+        sf::Vector2i localPosition = sf::Mouse::getPosition(window);
+
+        double x = 0;
+        double y = 0;
+        bool pressed = true;
+        if(!pressed && sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        {
+            y = h -double (localPosition.y);
+            x = double (localPosition.x);
+
+        }
+
+        if(x != 0 && y !=0 && !added){
+           tester.set_position(x,y);
+           state.add_body(&tester);
+           draw_bodies.update(state);
+           added = true;
+        }
+        for(Body bode : bodes){
+            state.add_body(&bode);
+        }
+        draw_bodies.update(state);
+
 
 
         sf::Time frame_t = clock.restart();
@@ -171,6 +241,9 @@ int main() {
          window.draw(texta);
       //  window.draw(textb);
         window.display();
+
+
+
     }
 
 

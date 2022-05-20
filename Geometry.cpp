@@ -9,26 +9,30 @@ void Vec::normalize() {
     size = 1;
 }
 
-Vec operator-(Vec& v1, Vec& v2){
+Vec operator-(const Vec& v1, const Vec& v2){
     Vec v{v1.x - v2.x, v1.y - v2.y};
     return v;
 }
 
-Vec operator+(Vec& v1, Vec& v2){
+Vec operator+(const Vec& v1, const Vec& v2){
     Vec v{v1.x + v2.x, v1.y + v2.y};
     return v;
 }
 
-Vec operator*(double num, Vec &v) {
+Vec operator*(double num, const Vec  &v) {
     return Vec{v.get_x() * num, v.get_y() * num};
 }
+
+//Vec operator*(double num, Vec v) {
+  //  return Vec{v.get_x() * num, v.get_y() * num};
+//}
 
 double Vec::angle_from_xaxis() {
     return std::atan(y/x);
 }
 
 //Vector helper functions
-double dotProd(Vec& v1, Vec& v2){
+double dotProd(const Vec& v1,const Vec& v2){
     return v1.get_x() * v2.get_x() + v1.get_y() * v2.get_y();
 }
 
@@ -195,4 +199,8 @@ bool intersects(Shape& a, Shape& b){
     if(a.get_type() == Type::AABB && b.get_type() == Type::AABB){
 
     }
+}
+
+Vec get_normal(Shape& a, Shape& b) {
+
 }

@@ -22,6 +22,12 @@ public:
         current = shape.get_position();
         previous = shape.get_position();
         render_pos = shape.get_position();
+        if(mass == 0) {
+
+            gravity = 0;
+        }else{
+            gravity = 500;
+        }
 
     };
 
@@ -40,6 +46,10 @@ public:
     void set_velocity(double x, double y){
         velocity.set_x(x);
         velocity.set_y(y);
+    }
+    void set_velocity(Vec vel){
+        velocity.set_x(vel.get_x());
+        velocity.set_y(vel.get_y());
     }
     void set_position(Vec v){
         shape.set_position(v.get_x(),v.get_y());
@@ -64,7 +74,7 @@ public:
     friend bool does_intersect(Body& a, Body& b);
     friend bool operator==(Body a, Body b);
     friend bool operator!=(Body a, Body b);
-double  gravity = 500;
+double  gravity;
 Vec normal = Vec{};
 
 private:
