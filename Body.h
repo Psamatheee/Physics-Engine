@@ -29,6 +29,7 @@ public:
             gravity = 500;
         }
 
+
     };
 
     //getters
@@ -76,6 +77,8 @@ public:
     friend bool operator!=(Body a, Body b);
 double  gravity;
 Vec normal = Vec{};
+double dynamic_coeff = 0.021;
+    double static_coeff = 0.014;
 
 private:
     Shape& shape;

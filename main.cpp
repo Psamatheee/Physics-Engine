@@ -127,16 +127,16 @@ int main() {
     Circle circ4{100, Vec{1500, 500}};
     Circle circ5{20, Vec{1000, 1200}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
-    AABB ab{Vec{1,10}, Vec{w-1,100}};
+    AABB ab{Vec{1,1}, Vec{w-1,100}};
     AABB ab3{Vec{w-100,200}, Vec{w-50,h-1}};
     Body boddd{ab3,0.75,0, Vec{0,0}};
     Body bod3{ab, 0.75, 0,Vec{0,0}};
    Body body2{circ4, 0.75, 0, Vec{0, 0}};
-    Body body5{circ2, 0.75, 0.5, Vec{500, 800}};
+    Body body5{circ2, 0.75, 0.05, Vec{500, 800}};
     Body body6{circ5, 0.75, 0.5, Vec{500, 800}};
-   Body body{circ, 0.75, 3, Vec{-200, 500}};
+   Body body{circ, 0.75, 3, Vec{-900, 500}};
    AABB ab2{Vec{300,500}, Vec{600,780}};
-   Body bod4{ab2, 0.75, 2.5,Vec{0,600}};
+   Body bod4{ab2, 0.75, 5,Vec{-400,600}};
     std::vector<Body> bodes;
     std::vector<Circle> shapes;
    State state{w,h};
@@ -150,14 +150,14 @@ int main() {
   //  state.add_body(&body6);
     std::vector<AABB> boxes;
 
-    for(int i = 0; i < 1; i++){
-        AABB box{Vec{10 + 20.0*i, h-100}, Vec{10 + 20*i + 10.0, h-10}};
+    for(int i = 0; i < 10; i++){
+        AABB box{Vec{10 + 50.0*i, h-100}, Vec{10 + 50*i + 70.0, h-10}};
         boxes.push_back(box);
     }
 
     std::vector<Body> bodies;
     for(AABB& box : boxes){
-        Body the_bod{box,0.75,0.5,Vec{0,0}};
+        Body the_bod{box,0.75,0.5,Vec{100,100}};
         bodies.push_back(the_bod);
     }
 

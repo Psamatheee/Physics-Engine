@@ -243,7 +243,7 @@ void set_manifold(Body& a, Body& b, Manifold& m){
     }
     if(b.get_shape().get_type() == Type::AABB && a.get_shape().get_type() == Type::Circle){
         calculate_manifold_AABBvsCircle(b,a,m);
-        //m.normal = -1.0 * m.normal ;
+        m.normal = -1.0 * m.normal ;
     }
     if(a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::AABB){
         Rectangle aa{a.get_shape().get_min(),a.get_shape().get_max()};
@@ -331,6 +331,34 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
 
     Vec a_velocity = a.get_velocity() - a.get_inv_mass() * impulse;
     Vec b_velocity = b.get_velocity() + b.get_inv_mass() * impulse;
+
+    a.set_velocity(a_velocity);
+    b.set_velocity(b_velocity);
+
+    //friction
+    //Vec new_normal = b.se
+    Vec tangent = Vec{m.normal.get_y()*-1, m.normal.get_x()};
+    if(dotProd(b.get_velocity(),tangent) > 0) {
+        tangent = -1*tangent;
+    }
+    tangent.normalize();
+    Vec new_relative = b.get_velocity() - a.get_velocity();
+    double jtt = dotProd(new_relative , tangent);
+    double jt = jtt / (a.get_inv_mass() + b.get_inv_mass());
+
+    double static_coefficient  = std::sqrt(a.static_coeff*a.static_coeff + b.static_coeff*b.static_coeff);
+    double dynamic_coefficient  = std::sqrt(a.dynamic_coeff*a.dynamic_coeff + b.dynamic_coeff*b.dynamic_coeff);
+    Vec friction_force;
+    if(std::abs(jt) < impulse.get_size() *  static_coefficient){
+        friction_force = std::abs(jt) * tangent;
+    }else{
+        friction_force = impulse.get_size() * dynamic_coefficient * tangent;
+    }
+    Vec a_change = a.get_inv_mass() * friction_force;
+    Vec b_change = b.get_inv_mass() * friction_force;
+
+    a_velocity = a.get_velocity() - a_change;
+    b_velocity = b.get_velocity() + b_change;
 
     a.set_velocity(a_velocity);
     b.set_velocity(b_velocity);
