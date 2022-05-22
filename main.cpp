@@ -127,7 +127,7 @@ int main() {
     Circle circ4{100, Vec{1500, 500}};
     Circle circ5{20, Vec{1000, 1200}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
-    AABB ab{Vec{1,1}, Vec{w-1,100}};
+    AABB ab{Vec{0,0}, Vec{w,100}};
     AABB ab3{Vec{w-100,200}, Vec{w-50,h-1}};
     Body boddd{ab3,0.75,0, Vec{0,0}};
     Body bod3{ab, 0.75, 0,Vec{0,0}};
@@ -150,7 +150,9 @@ int main() {
   //  state.add_body(&body6);
     std::vector<AABB> boxes;
 
-    for(int i = 0; i < 10; i++){
+    std::vector<Body*> user_bodies;
+
+    for(int i = 0; i < 6; i++){
         AABB box{Vec{10 + 50.0*i, h-100}, Vec{10 + 50*i + 70.0, h-10}};
         boxes.push_back(box);
     }
@@ -179,28 +181,42 @@ int main() {
 
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) window.close();
+            if (event.type == sf::Event::Closed) {
+                for(Body* bode : user_bodies){
+                    delete bode;
+                }
+                window.close();}
         }
         sf::Vector2i localPosition = sf::Mouse::getPosition(window);
 
         double x = 0;
         double y = 0;
-        bool pressed = true;
-        if(pressed && sf::Mouse::isButtonPressed(sf::Mouse::Left))
+
+        while( sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
             y = h -double (localPosition.y);
             x = double (localPosition.x);
+            added = false;
 
         }
 
         if(x != 0 && y !=0 && !added){
-           tester.set_position(x,y);
+          /* tester.set_position(x,y);
            state.add_body(&tester);
            draw_bodies.update(state);
-           added = true;
+           */
+          auto* circ_testee = new Circle{(double) (std::rand() % 100), Vec{x,y}};
+          Body* testee = new Body{*circ_testee, 0.75, (double) (std::rand() % 25), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
+          user_bodies.push_back(testee);
+
+          added = true;
+
         }
         for(Body bode : bodes){
             state.add_body(&bode);
+        }
+        for(Body* bode : user_bodies){
+            state.add_body(bode);
         }
         draw_bodies.update(state);
 
@@ -222,7 +238,7 @@ int main() {
 
         double a = accum / dt;
         state.set_render_pos(a);
-        window.clear(sf::Color(22, 23, 23));
+        window.clear(sf::Color::White);
         std::string bod4_str = std::to_string(bod4.get_velocity().get_x()) + "\n" + std::to_string(bod4.get_velocity().get_y());
      //   std::string bod3_str = std::to_string(bod3.get_velocity().get_x()) + "\n" + std::to_string(bod3.get_velocity().get_y());
         texta.setString(bod4_str);
@@ -233,7 +249,7 @@ int main() {
          for(const DrawBody& bodd : draw_bodies.bodies){
             window.draw(bodd);
         }
-         window.draw(texta);
+       //  window.draw(texta);
       //  window.draw(textb);
         window.display();
 
