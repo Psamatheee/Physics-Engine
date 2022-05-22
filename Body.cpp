@@ -243,9 +243,9 @@ void set_manifold(Body& a, Body& b, Manifold& m){
     }
     if(b.get_shape().get_type() == Type::AABB && a.get_shape().get_type() == Type::Circle){
         calculate_manifold_AABBvsCircle(b,a,m);
-        m.normal = -1.0 * m.normal ;
+        //m.normal = -1.0 * m.normal ;
     }
-    if(a.get_shape().get_type() == Type::AABB && a.get_shape().get_type() == Type::AABB){
+    if(a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::AABB){
         Rectangle aa{a.get_shape().get_min(),a.get_shape().get_max()};
         Rectangle bb{b.get_shape().get_min(),b.get_shape().get_max()};
         Vec r = bb.max - aa.max;

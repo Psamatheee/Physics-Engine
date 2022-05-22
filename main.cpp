@@ -42,12 +42,7 @@ public:
                 Vec collision_normal = b_pos - a_pos;
                 collision_normal.normalize();
                 Manifold m = Manifold{aa, bb, e, collision_normal};
-                if(pair.a->gravity ==0 && pair.b->gravity!=0){
-                    pair.a->gravity= pair.b->gravity;
-                }
-                if(pair.a->gravity !=0 && pair.b->gravity==0){
-                    pair.b->gravity== pair.a->gravity;
-                }
+
 
                 set_new_speeds(aa, bb, m);
                 //double  ee = -1.0;
@@ -129,14 +124,14 @@ int main() {
     double w = window.getSize().x;
     Circle circ{100, Vec{w / 2, h / 2}};
     Circle circ2{20, Vec{900, 200}};
-    Circle circ4{100, Vec{1500, 1200}};
+    Circle circ4{100, Vec{1500, 500}};
     Circle circ5{20, Vec{1000, 1200}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
     AABB ab{Vec{1,10}, Vec{w-1,100}};
     AABB ab3{Vec{w-100,200}, Vec{w-50,h-1}};
     Body boddd{ab3,0.75,0, Vec{0,0}};
     Body bod3{ab, 0.75, 0,Vec{0,0}};
-   Body body2{circ4, 0.75, 3, Vec{500, 800}};
+   Body body2{circ4, 0.75, 0, Vec{0, 0}};
     Body body5{circ2, 0.75, 0.5, Vec{500, 800}};
     Body body6{circ5, 0.75, 0.5, Vec{500, 800}};
    Body body{circ, 0.75, 3, Vec{-200, 500}};
@@ -146,7 +141,7 @@ int main() {
     std::vector<Circle> shapes;
    State state{w,h};
   state.add_body(&bod3);
-   // state.add_body(&body2);
+   state.add_body(&body2);
   // state.add_body(&body);
 
   state.add_body(&bod4);
@@ -154,7 +149,7 @@ int main() {
     state.add_body(&body5);
   //  state.add_body(&body6);
     std::vector<AABB> boxes;
-    /*
+
     for(int i = 0; i < 1; i++){
         AABB box{Vec{10 + 20.0*i, h-100}, Vec{10 + 20*i + 10.0, h-10}};
         boxes.push_back(box);
@@ -169,7 +164,7 @@ int main() {
     for(Body& boder : bodies){
         state.add_body(&boder);
     }
-*/ bool added = false;
+ bool added = false;
     DrawBodies draw_bodies{};
     draw_bodies.update(state);
 
@@ -191,7 +186,7 @@ int main() {
         double x = 0;
         double y = 0;
         bool pressed = true;
-        if(!pressed && sf::Mouse::isButtonPressed(sf::Mouse::Left))
+        if(pressed && sf::Mouse::isButtonPressed(sf::Mouse::Left))
         {
             y = h -double (localPosition.y);
             x = double (localPosition.x);
