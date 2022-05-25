@@ -25,6 +25,10 @@ double friction = 5;
     double new_x = get_position().get_x() + dr.get_x();
     double new_y = get_position().get_y() + dr.get_y();
     set_position(new_x , new_y);
+    double ek = 0.5 * mass * velocity.get_size()*velocity.get_size();
+
+
+
 
 
 
@@ -181,6 +185,11 @@ bool operator!=(Body a, Body b) {
     return !(a==b);
 }
 
+Body::~Body() {
+
+
+}
+
 struct Manifold{
     Body& a;
     Body& b;
@@ -191,8 +200,9 @@ struct Manifold{
 
 
 void position_correction(Body& a, Body& b, Manifold& m){
+
     const double slop = 0.01; // usually 0.01 to 0.1
-    const double percent = 0.2; // usually 20% to 80%
+    const double percent = 0.5; // usually 20% to 80%
     Vec correction = (std::max(m.penetration - slop, 0.0) / (a.get_inv_mass() + b.get_inv_mass()) * percent) * m.normal;
     Vec a_pos = a.get_position();
     Vec a_correct = a.get_inv_mass() * correction;
@@ -204,6 +214,10 @@ void position_correction(Body& a, Body& b, Manifold& m){
     Vec b_correct = b.get_inv_mass() * correction;
     Vec new_b = b_correct + b_pos;
     b.set_position(new_b);
+
+
+
+
 }
 
 // a is the rectangle
@@ -219,7 +233,7 @@ void calculate_manifold_AABBvsCircle(Body& a, Body& b, Manifold& m){
     Vec b_pos = b.get_position();
     Vec a_pos = closest;
     Vec centreLine = b_pos - a_pos;
-    if(closest.get_x() < aa.max.get_x() && closest.get_x() >aa.min.get_x() && closest.get_y() > aa.min.get_y() && closest.get_y() < aa.max.get_y()){
+    if(bb.get_centre().get_x() < aa.max.get_x() && bb.get_centre().get_x() >aa.min.get_x() && bb.get_centre().get_y() > aa.min.get_y() && bb.get_centre().get_y() < aa.max.get_y()){
        b.set_position(closest);
        centreLine = Vec{centreLine.get_x()*-1, centreLine.get_y()*-1};
 
@@ -318,6 +332,10 @@ void set_manifold(Body& a, Body& b, Manifold& m){
 
 
 void set_new_speeds(Body& a, Body& b, Manifold& m ){
+    a.mass = a.back_up_mass;
+    a.gravity = a.back_up_grav;
+    b.mass = b.back_up_mass;
+    b.gravity = b.back_up_grav;
     set_manifold(a, b, m);
 
     double Uab_normal = dotProd(b.get_velocity()-a.get_velocity(), m.normal); // initial relative velocity along the normal
@@ -329,9 +347,19 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
     double j = (-1.0 * (1+e) * Uab_normal) / (a.get_inv_mass() + b.get_inv_mass());
     Vec impulse = j * m.normal;
 
-    Vec a_velocity = a.get_velocity() - a.get_inv_mass() * impulse;
-    Vec b_velocity = b.get_velocity() + b.get_inv_mass() * impulse;
+    Vec a_change_impulse = a.get_inv_mass() * impulse;
+    Vec b_change_impulse = b.get_inv_mass() * impulse;
 
+    Vec a_velocity = a.get_velocity() - a_change_impulse;
+    Vec b_velocity = b.get_velocity() + b_change_impulse;
+ /*   if(a_change_impulse.get_y() < 21 &&  a_change_impulse.get_y() != 0){
+        a_velocity.set_y(0);
+        a.gravity = 0;
+    }
+    if(b_change_impulse.get_y() < 21 &&  b_change_impulse.get_y() != 0){
+        b_velocity.set_y(0);
+        b.gravity = 0;
+    }*/
     a.set_velocity(a_velocity);
     b.set_velocity(b_velocity);
 
@@ -363,6 +391,17 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
     a.set_velocity(a_velocity);
     b.set_velocity(b_velocity);
 
+
+    if(b.get_velocity().get_y()*b.get_velocity().get_y() < 100 && b.get_velocity().get_x() == 0){
+        b.set_velocity(0,0);
+        b.mass=0;
+        b.gravity = 0;
+    }
+    if(a.get_velocity().get_y()*a.get_velocity().get_y() < 100 && a.get_velocity().get_x()){
+        a.set_velocity(0,0);
+        a.mass=0;
+        a.gravity = 0;
+    }
 
 }
 

@@ -28,9 +28,12 @@ public:
         }else{
             gravity = 500;
         }
+        back_up_mass = mass;
+        back_up_grav = gravity;
 
 
     };
+    ~Body();
 
     //getters
     double get_e() const{return rest_const;}
@@ -76,19 +79,22 @@ public:
     friend bool operator==(Body a, Body b);
     friend bool operator!=(Body a, Body b);
 double  gravity;
+    double mass;
+    double back_up_mass;
 Vec normal = Vec{};
 double dynamic_coeff = 0.021;
     double static_coeff = 0.014;
-
+double back_up_grav;
 private:
     Shape& shape;
     double rest_const;
-    double mass;
+    //double mass;
     double inv_mass;
     Vec velocity;
     Vec current;
     Vec previous;
     Vec render_pos;
+
 
 
 };

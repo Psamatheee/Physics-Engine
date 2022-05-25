@@ -57,6 +57,7 @@ bool does_rect_intersect(Rectangle& r1, Rectangle& r2){
 
 class Shape {
 public:
+  //  ~Shape();
     virtual Vec get_position() = 0;
     virtual double get_x() = 0;
     virtual double get_y() = 0;
