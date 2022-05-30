@@ -219,7 +219,7 @@ int main() {
 
         }
 
-        if(x != 0 && y !=0 && !added && false){
+        if(x != 0 && y !=0 && !added  ){
           /* tester.set_position(x,y);
            state.add_body(&tester);
            draw_bodies.update(state);

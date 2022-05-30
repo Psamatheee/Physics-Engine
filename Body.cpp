@@ -12,9 +12,9 @@
 void Body::integrate(double dt, double w, double h) {
 //    v += (1/m * F) * dt
 double friction = 5;
-Vec ee = velocity + inv_mass * dt * impulse;
+Vec ee = velocity + dt * inv_mass * impulse;
     Vec v{velocity.get_x() ,velocity.get_y() - dt*gravity };
-if(impulse.get_y() == 0 && impulse.get_x() == 0 && velocity.get_size() < 10) {
+if( velocity.get_size() < 10 && impulse.get_size() < 10) {
     mass = 0;
    inv_mass = 0;
     gravity = 0;
@@ -212,15 +212,26 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     set_manifold(a, b, m);
 
     double Uab_normal = dotProd(b.get_velocity()-a.get_velocity(), m.normal); // initial relative velocity along the normal
-    double mass_inv_sum;
-    mass_inv_sum = 1/(a.backup_inv+ b.backup_inv);
+    double mass_inv_sum = 1/(a.backup_inv + b.backup_inv);
+    double current_mass_inv_sum;
+    if(a.inv_mass == 0 && b.inv_mass == 0){
+        //mass_inv_sum = 0;
+        current_mass_inv_sum = 0;
+    }else{
+
+       // mass_inv_sum = 1/(a.backup_inv+ b.backup_inv);
+        current_mass_inv_sum = 1/(a.get_inv_mass() +b.inv_mass);
+    }
 
     if(Uab_normal > 0) return; //moving away from each other
     double e = std::min(a.get_e(), b.get_e());
 
     //Have to do it this way so that will still work for 0 mass objects
     double j = (-1.0 * (1+e) * Uab_normal)  * mass_inv_sum;
+    double j_curr = (-1.0 * (1+e) * Uab_normal)  * current_mass_inv_sum;
     Vec impulse = j * m.normal;
+    Vec impulse_curr = j_curr * m.normal;
+
 
     Vec a_change_impulse = a.backup_inv * impulse;
     Vec b_change_impulse = b.backup_inv * impulse;
@@ -240,7 +251,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     tangent.normalize();
     Vec new_relative = b.get_velocity() - a.get_velocity();
     double jtt = dotProd(new_relative , tangent);
-    double jt = jtt / (a.backup_inv + b.backup_inv);
+    double jt = jtt / (a.backup_inv+ b.backup_inv);
 
     double static_coefficient  = std::sqrt(a.static_coeff*a.static_coeff + b.static_coeff*b.static_coeff);
     double dynamic_coefficient  = std::sqrt(a.dynamic_coeff*a.dynamic_coeff + b.dynamic_coeff*b.dynamic_coeff);
@@ -256,19 +267,50 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     a_velocity = a.get_velocity() - a_change;
     b_velocity = b.get_velocity() + b_change;
 
+
+
  //   a.set_velocity(a_velocity);
   //  b.set_velocity(b_velocity);
     double final_a = impulse.get_size();
     double final_b = impulse.get_size();
-    if(a.get_inv_mass()*impulse.get_size() < 20) final_a = a.mass * a.gravity * dotProd(Vec{0,1}, m.normal   );
-    if(b.get_inv_mass()*impulse.get_size() < 20) final_b = b.mass * b.gravity * dotProd(Vec{0,1}, m.normal   );
+ //   if(a.get_inv_mass()*impulse.get_size() < 20) final_a = a.mass * a.gravity * dotProd(Vec{0,1}, m.normal   );
+   // if(b.get_inv_mass()*impulse.get_size() < 20) final_b = b.mass * b.gravity * dotProd(Vec{0,1}, m.normal   );
     //double final_a = std::max(impulse.get_size() , std::abs(a.mass * a.gravity * dotProd(Vec{0,1}, m.normal   )));
     //double final_b = std::max(impulse.get_size() , std::abs(b.mass * b.gravity * dotProd(Vec{0,1}, m.normal   )));
-    if(final_a != impulse.get_size()) impulse = -1 * final_a * m.normal;
-    a.impulse = a.impulse -  impulse;// + m.penetration*a.gravity * a.mass*m.normal; //- friction_force -a.mass*a.gravity*Vec{0,1};
-    if(final_b != impulse.get_size()) impulse = final_b * m.normal;
-    b.impulse = b.impulse +   impulse; // + friction_force + b.mass*b.gravity*Vec{0,1};
+    Vec a_imp = -1/dt * impulse;
+    Vec b_imp = 1/dt * impulse;
+    if(a.mass == 0 && a.back_up_mass != 0){
+        if(std::abs(impulse.get_x()*a.backup_inv) > 20){
+            a.mass = a.back_up_mass;
+            a.inv_mass = a.backup_inv;
+            a.gravity = a.back_up_grav;
+        }else{
+            b_imp = 1/dt * impulse_curr;
+        }
+    }
+    if(b.mass == 0 && b.back_up_mass != 0){
+        if(std::abs(impulse.get_x()*b.backup_inv) > 20){
+            b.mass = b.back_up_mass;
+            b.inv_mass = b.backup_inv;
+            b.gravity = b.back_up_grav;
+        }else{
+            a_imp = -1/dt * impulse_curr;
+        }
+    }
 
+    a.impulse = a_imp + (-a.mass * a.gravity * Vec{0,1}) - 1/dt *friction_force;
+    b.impulse = b_imp + (-b.mass * b.gravity * Vec{0,1}) + 1/dt * friction_force;
+
+
+
+    /*if(a_full.get_x()<20 || a_full.get_x()>0) {
+        a.impulse = a_full;
+        a.gravity = a.back_up_grav;
+    }*/
+
+
+
+   // b.impulse  = b_full;
 /*    if(b.get_velocity().get_y()*b.get_velocity().get_y() < 100 && b.get_velocity().get_x() == 0){
         b.set_velocity(0,0);
         b.mass=0;
