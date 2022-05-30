@@ -11,7 +11,6 @@
 
 void Body::integrate(double dt, double w, double h) {
 //    v += (1/m * F) * dt
-double friction = 5;
 Vec ee = velocity + dt * inv_mass * impulse;
     Vec v{velocity.get_x() ,velocity.get_y() - dt*gravity };
 if( velocity.get_size() < 10 && impulse.get_size() < 10) {
@@ -40,9 +39,7 @@ if( velocity.get_size() < 10 && impulse.get_size() < 10) {
 
 }
 
-bool does_intersect(Body& a, Body& b){
-    return a.shape.intersects(b.shape);
-};
+
 
 struct Pair{
     Body* a;
@@ -61,10 +58,6 @@ bool operator!=(Body a, Body b) {
     return !(a==b);
 }
 
-Body::~Body() {
-
-
-}
 
 struct Manifold{
     Body& a;
@@ -219,7 +212,6 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
         current_mass_inv_sum = 0;
     }else{
 
-       // mass_inv_sum = 1/(a.backup_inv+ b.backup_inv);
         current_mass_inv_sum = 1/(a.get_inv_mass() +b.inv_mass);
     }
 
@@ -232,18 +224,6 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     Vec impulse = j * m.normal;
     Vec impulse_curr = j_curr * m.normal;
 
-
-    Vec a_change_impulse = a.backup_inv * impulse;
-    Vec b_change_impulse = b.backup_inv * impulse;
-
-    Vec a_velocity = a.get_velocity() - a_change_impulse;
-    Vec b_velocity = b.get_velocity() + b_change_impulse;
-
-   // a.set_velocity(a_velocity);
-   // b.set_velocity(b_velocity);
-
-    //friction
-    //Vec new_normal = b.se
     Vec tangent = Vec{m.normal.get_y()*-1, m.normal.get_x()};
     if(dotProd(b.get_velocity(),tangent) > 0) {
         tangent = -1*tangent;
@@ -261,22 +241,8 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     }else{
         friction_force = impulse.get_size() * dynamic_coefficient * tangent;
     }
-    Vec a_change = a.get_inv_mass() * friction_force;
-    Vec b_change = b.get_inv_mass() * friction_force;
-
-    a_velocity = a.get_velocity() - a_change;
-    b_velocity = b.get_velocity() + b_change;
 
 
-
- //   a.set_velocity(a_velocity);
-  //  b.set_velocity(b_velocity);
-    double final_a = impulse.get_size();
-    double final_b = impulse.get_size();
- //   if(a.get_inv_mass()*impulse.get_size() < 20) final_a = a.mass * a.gravity * dotProd(Vec{0,1}, m.normal   );
-   // if(b.get_inv_mass()*impulse.get_size() < 20) final_b = b.mass * b.gravity * dotProd(Vec{0,1}, m.normal   );
-    //double final_a = std::max(impulse.get_size() , std::abs(a.mass * a.gravity * dotProd(Vec{0,1}, m.normal   )));
-    //double final_b = std::max(impulse.get_size() , std::abs(b.mass * b.gravity * dotProd(Vec{0,1}, m.normal   )));
     Vec a_imp = -1/dt * impulse;
     Vec b_imp = 1/dt * impulse;
     if(a.mass == 0 && a.back_up_mass != 0){
@@ -301,26 +267,6 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     a.impulse = a_imp + (-a.mass * a.gravity * Vec{0,1}) - 1/dt *friction_force;
     b.impulse = b_imp + (-b.mass * b.gravity * Vec{0,1}) + 1/dt * friction_force;
 
-
-
-    /*if(a_full.get_x()<20 || a_full.get_x()>0) {
-        a.impulse = a_full;
-        a.gravity = a.back_up_grav;
-    }*/
-
-
-
-   // b.impulse  = b_full;
-/*    if(b.get_velocity().get_y()*b.get_velocity().get_y() < 100 && b.get_velocity().get_x() == 0){
-        b.set_velocity(0,0);
-        b.mass=0;
-        b.gravity = 0;
-    }
-    if(a.get_velocity().get_y()*a.get_velocity().get_y() < 100 && a.get_velocity().get_x()){
-        a.set_velocity(0,0);
-        a.mass=0;
-        a.gravity = 0;
-    }*/
 
 }
 
