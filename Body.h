@@ -30,6 +30,9 @@ public:
         }
         back_up_mass = mass;
         back_up_grav = gravity;
+        impulse.set_x(0);
+        impulse.set_y(-mass*gravity);
+        backup_inv = inv_mass;
 
 
     };
@@ -81,6 +84,9 @@ public:
 double  gravity;
     double mass;
     double back_up_mass;
+    Vec impulse;
+    double inv_mass;
+    double backup_inv;
 Vec normal = Vec{};
 double dynamic_coeff = 0.021;
     double static_coeff = 0.014;
@@ -89,7 +95,7 @@ private:
     Shape& shape;
     double rest_const;
     //double mass;
-    double inv_mass;
+
     Vec velocity;
     Vec current;
     Vec previous;

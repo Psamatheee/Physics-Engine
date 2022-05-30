@@ -44,13 +44,11 @@ public:
                 Manifold m = Manifold{aa, bb, e, collision_normal};
 
 
-                set_new_speeds(aa, bb, m);
+                set_new_speeds(aa, bb, m,dt);
                 //double  ee = -1.0;
                 pair.b->normal = Vec{m.normal.get_x() * -1, m.normal.get_y() * -1};
                 pair.a->normal = m.normal;
-                position_correction(aa, bb, m);
-
-            }else{
+                if(pair.a->mass != 0 || pair.b->mass != 0) position_correction(aa, bb, m);
 
             }
 
@@ -67,6 +65,7 @@ public:
                                          return (i->get_position().get_y() < -500 || i->get_position().get_x() < -500 || i->get_position().get_x() > width + 500 ) ;    // remove odd numbers
                                       });
             bodies.erase(end, bodies.end());
+            body->impulse = Vec{0,-body->get_mass()*body->gravity};
 
 
         }
@@ -220,7 +219,7 @@ int main() {
 
         }
 
-        if(x != 0 && y !=0 && !added ){
+        if(x != 0 && y !=0 && !added && false){
           /* tester.set_position(x,y);
            state.add_body(&tester);
            draw_bodies.update(state);

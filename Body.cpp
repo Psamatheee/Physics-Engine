@@ -12,11 +12,16 @@
 void Body::integrate(double dt, double w, double h) {
 //    v += (1/m * F) * dt
 double friction = 5;
-
+Vec ee = velocity + inv_mass * dt * impulse;
     Vec v{velocity.get_x() ,velocity.get_y() - dt*gravity };
+if(impulse.get_y() == 0 && impulse.get_x() == 0 && velocity.get_size() < 10) {
+    mass = 0;
+   inv_mass = 0;
+    gravity = 0;
+    ee = Vec{0,0};
+}
 
-
-    set_velocity(v);
+    set_velocity(ee);
 
 
 
@@ -44,136 +49,7 @@ struct Pair{
     Body* b;
 };
 
-bool compare(Pair& l, Pair& r ){
-    return pow(l.a->get_position().get_x() - l.b->get_position().get_x(),2) + pow(l.a->get_position().get_y() - l.b->get_position().get_y(),2) < pow(r.a->get_position().get_x() - r.b->get_position().get_x(),2) + pow(r.a->get_position().get_y() - r.b->get_position().get_y(),2);
-}
 
-
-
-bool Body::collides_wall(double h, double w, double dt){
-    double pen;
-    double x_pen;
-    double y_pen;
-    Vec normal{};
-    double friction = 0;
-    Boundary bound = get_shape().collides_boundary(w,h);
-    double slop = 0.01;
-    switch (bound) {
-        case Boundary::None:
-            return false;
-        case Boundary::Top:
-            set_velocity(get_velocity().get_x(), get_velocity().get_y() * rest_const * -1);
-            if(shape.get_type()==Type::Circle){
-                set_position(get_position().get_x(), h-shape.get_radius() - slop);
-            }
-            if(shape.get_type()== Type::AABB){
-                set_position(get_position().get_x(), h-slop);
-            }
-            normal.set_x(0);
-            normal.set_y(1);
-            break;
-        case Boundary::Bottom:
-
-            set_velocity(get_velocity().get_x(), get_velocity().get_y() * rest_const * -1);
-        if(shape.get_type()==Type::Circle){
-            set_position(get_position().get_x(),get_shape().get_radius() + 0.01);
-            return true;
-        }
-        if(shape.get_type()== Type::AABB) {
-            set_position(get_shape().get_max().get_x(),get_shape().get_max().get_y()-get_shape().get_min().get_y() + 0.01);
-            return true;
-        }
-            normal.set_x(0);
-            normal.set_y(1);
-
-            break;
-        case Boundary::Right:
-            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() );
-            if(shape.get_type()==Type::Circle){
-                set_position(w-shape.get_radius()-slop,get_position().get_y());
-            }
-            if(shape.get_type()== Type::AABB){
-                set_position(w - slop, get_position().get_y());
-            }
-            normal.set_x(1);
-            normal.set_y(0);
-            break;
-        case Boundary::Left:
-            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() );
-            if(shape.get_type()==Type::Circle){
-                set_position(shape.get_radius()+slop,get_position().get_y());
-            }
-            if(shape.get_type()== Type::AABB){
-                set_position(shape.get_max().get_x()-shape.get_min().get_x() + slop, get_position().get_y());
-            }
-            normal.set_x(-1);
-            normal.set_y(0);
-            break;
-        case Boundary::TL:
-            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() * rest_const * -1 );
-            if(shape.get_type()==Type::Circle){
-                set_position(shape.get_radius()+slop, h-shape.get_radius() - slop);
-            }
-            if(shape.get_type()== Type::AABB){
-                set_position(shape.get_max().get_x()-shape.get_min().get_x() + slop, h-slop);
-            }
-            normal.set_x(-1);
-            normal.set_y(1);
-            normal.normalize();
-            break;
-        case Boundary::BL:
-            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y()* rest_const * -1 );
-            if(shape.get_type()==Type::Circle){
-                set_position(shape.get_radius()+slop,get_shape().get_radius() + 0.01);
-                return true;
-            }
-            if(shape.get_type()== Type::AABB) {
-                set_position(shape.get_max().get_x()-shape.get_min().get_x() + slop,get_shape().get_max().get_y()-get_shape().get_min().get_y() + 0.01);
-                return true;
-            }
-            normal.set_x(-1);
-            normal.set_y(-1);
-           normal.normalize();
-            break;
-        case Boundary::BR:
-            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y()* rest_const * -1 );
-            if(shape.get_type()==Type::Circle){
-                set_position(w-shape.get_radius()-slop,get_shape().get_radius() + 0.01);
-                return true;
-            }
-            if(shape.get_type()== Type::AABB) {
-                set_position(w - slop,get_shape().get_max().get_y()-get_shape().get_min().get_y() + 0.01);
-                return true;
-            }
-            normal.set_x(1);
-            normal.set_y(-1);
-         normal.normalize();
-            break;
-        case Boundary::TR:
-            set_velocity(get_velocity().get_x() * -1 * rest_const, get_velocity().get_y() * rest_const * -1 );
-            if(shape.get_type()==Type::Circle){
-                set_position(w-shape.get_radius()-slop,h-shape.get_radius() - slop);
-                return true;
-            }
-            if(shape.get_type()== Type::AABB) {
-                set_position(w - slop,h-slop);
-                return true;
-            }
-            normal.set_x(1);
-            normal.set_y(1);
-           normal.normalize();
-            break;
-
-
-    }
-
-
-
-
-
-
-    return false;
-}
 
 bool operator==(Body a, Body b) {
     bool vecs = (a.get_position().get_x() == b.get_position().get_x() && a.get_position().get_y() == b.get_position().get_y() && a.get_velocity().get_y() == b.get_velocity().get_y() &&a.get_velocity().get_x() == b.get_velocity().get_x()  );
@@ -331,37 +207,29 @@ void set_manifold(Body& a, Body& b, Manifold& m){
 
 
 
-void set_new_speeds(Body& a, Body& b, Manifold& m ){
-    a.mass = a.back_up_mass;
-    a.gravity = a.back_up_grav;
-    b.mass = b.back_up_mass;
-    b.gravity = b.back_up_grav;
+void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
+
     set_manifold(a, b, m);
 
     double Uab_normal = dotProd(b.get_velocity()-a.get_velocity(), m.normal); // initial relative velocity along the normal
+    double mass_inv_sum;
+    mass_inv_sum = 1/(a.backup_inv+ b.backup_inv);
 
     if(Uab_normal > 0) return; //moving away from each other
     double e = std::min(a.get_e(), b.get_e());
 
     //Have to do it this way so that will still work for 0 mass objects
-    double j = (-1.0 * (1+e) * Uab_normal) / (a.get_inv_mass() + b.get_inv_mass());
+    double j = (-1.0 * (1+e) * Uab_normal)  * mass_inv_sum;
     Vec impulse = j * m.normal;
 
-    Vec a_change_impulse = a.get_inv_mass() * impulse;
-    Vec b_change_impulse = b.get_inv_mass() * impulse;
+    Vec a_change_impulse = a.backup_inv * impulse;
+    Vec b_change_impulse = b.backup_inv * impulse;
 
     Vec a_velocity = a.get_velocity() - a_change_impulse;
     Vec b_velocity = b.get_velocity() + b_change_impulse;
- /*   if(a_change_impulse.get_y() < 21 &&  a_change_impulse.get_y() != 0){
-        a_velocity.set_y(0);
-        a.gravity = 0;
-    }
-    if(b_change_impulse.get_y() < 21 &&  b_change_impulse.get_y() != 0){
-        b_velocity.set_y(0);
-        b.gravity = 0;
-    }*/
-    a.set_velocity(a_velocity);
-    b.set_velocity(b_velocity);
+
+   // a.set_velocity(a_velocity);
+   // b.set_velocity(b_velocity);
 
     //friction
     //Vec new_normal = b.se
@@ -372,7 +240,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
     tangent.normalize();
     Vec new_relative = b.get_velocity() - a.get_velocity();
     double jtt = dotProd(new_relative , tangent);
-    double jt = jtt / (a.get_inv_mass() + b.get_inv_mass());
+    double jt = jtt / (a.backup_inv + b.backup_inv);
 
     double static_coefficient  = std::sqrt(a.static_coeff*a.static_coeff + b.static_coeff*b.static_coeff);
     double dynamic_coefficient  = std::sqrt(a.dynamic_coeff*a.dynamic_coeff + b.dynamic_coeff*b.dynamic_coeff);
@@ -388,11 +256,20 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
     a_velocity = a.get_velocity() - a_change;
     b_velocity = b.get_velocity() + b_change;
 
-    a.set_velocity(a_velocity);
-    b.set_velocity(b_velocity);
+ //   a.set_velocity(a_velocity);
+  //  b.set_velocity(b_velocity);
+    double final_a = impulse.get_size();
+    double final_b = impulse.get_size();
+    if(a.get_inv_mass()*impulse.get_size() < 20) final_a = a.mass * a.gravity * dotProd(Vec{0,1}, m.normal   );
+    if(b.get_inv_mass()*impulse.get_size() < 20) final_b = b.mass * b.gravity * dotProd(Vec{0,1}, m.normal   );
+    //double final_a = std::max(impulse.get_size() , std::abs(a.mass * a.gravity * dotProd(Vec{0,1}, m.normal   )));
+    //double final_b = std::max(impulse.get_size() , std::abs(b.mass * b.gravity * dotProd(Vec{0,1}, m.normal   )));
+    if(final_a != impulse.get_size()) impulse = -1 * final_a * m.normal;
+    a.impulse = a.impulse -  impulse;// + m.penetration*a.gravity * a.mass*m.normal; //- friction_force -a.mass*a.gravity*Vec{0,1};
+    if(final_b != impulse.get_size()) impulse = final_b * m.normal;
+    b.impulse = b.impulse +   impulse; // + friction_force + b.mass*b.gravity*Vec{0,1};
 
-
-    if(b.get_velocity().get_y()*b.get_velocity().get_y() < 100 && b.get_velocity().get_x() == 0){
+/*    if(b.get_velocity().get_y()*b.get_velocity().get_y() < 100 && b.get_velocity().get_x() == 0){
         b.set_velocity(0,0);
         b.mass=0;
         b.gravity = 0;
@@ -401,7 +278,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m ){
         a.set_velocity(0,0);
         a.mass=0;
         a.gravity = 0;
-    }
+    }*/
 
 }
 
