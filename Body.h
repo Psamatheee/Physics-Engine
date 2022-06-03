@@ -36,7 +36,7 @@ public:
 
 
     };
-    ~Body();
+    //~Body();
 
     //getters
     double get_e() const{return rest_const;}

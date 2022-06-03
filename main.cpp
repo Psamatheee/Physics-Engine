@@ -84,7 +84,14 @@ public:
     }
 
     std::vector<Body*> get_bodies() const {return bodies;}
-    double get_h(){return h;}
+    double get_h() const{return h;}
+    void reset(){
+        bodies.erase(bodies.begin(), bodies.end());
+        bodies.clear();
+        AABB* ab = new AABB{Vec{w/8,h/4 - 100}, Vec{7*w/8,h/4}};
+        Body* bod3 = new Body{*ab, 0.75, 0,Vec{0,0}};
+        bodies.push_back(bod3);
+    }
 
 private:
     double w;
@@ -193,7 +200,7 @@ int main() {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 for(Body* bode : user_bodies){
-                    delete bode;
+                 //   delete bode;
                 }
                 window.close();}
         }
@@ -218,6 +225,7 @@ int main() {
             added_box = false;
 
         }
+
 
         if(x != 0 && y !=0 && !added  ){
           /* tester.set_position(x,y);
@@ -291,6 +299,9 @@ int main() {
          window.draw(texta);
       //  window.draw(textb);
         window.display();
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::X)){
+            state.reset();
+        }
 
 
 

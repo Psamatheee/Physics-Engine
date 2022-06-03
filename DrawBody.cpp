@@ -14,6 +14,7 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         circ.setOutlineThickness(-2.f);
         circ.setOutlineColor(sf::Color::Black);
       //  std::cout<<"Render: " <<body.get_render().get_x() << " " << body.get_render().get_y() <<"\n";
+      if(body.gravity == 0) circ.setFillColor(sf::Color::Red);
         target.draw(circ,states);
     }
     if(body.get_shape().get_type() == Type::AABB){
@@ -28,13 +29,22 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         quad[2].position = sf::Vector2f(quad[1].position.x - width,quad[1].position.y);
         quad[3].position = sf::Vector2f(quad[2].position.x  ,( quad[2].position.y-height));
         rectangle.setFillColor(sf::Color::White);
+        if(body.gravity == 0) rectangle.setFillColor(sf::Color::Red);
         rectangle.setOutlineThickness(-3.f);
         rectangle.setOutlineColor(sf::Color::Black);
+        if(body.gravity == 0) {
+            quad[0].color = sf::Color::Red;
+            quad[1].color = sf::Color::Red;
+            quad[2].color = sf::Color::Red;
+            quad[3].color = sf::Color::Red;
+        }else{
+            quad[0].color = sf::Color::Black;
+            quad[1].color = sf::Color::Black;
+            quad[2].color = sf::Color::Black;
+            quad[3].color = sf::Color::Black;
+        }
 
-        quad[0].color = sf::Color::Black;
-        quad[1].color = sf::Color::Black;
-        quad[2].color = sf::Color::Black;
-        quad[3].color = sf::Color::Black;
+
     /*    std::cout <<"quad: " << quad[0].position.x << " " << quad[0].position.y <<"\n";
         std::cout <<"quad: " << quad[1].position.x << " " << quad[1].position.y <<"\n";
         std::cout <<"quad: " << quad[2].position.x << " " << quad[2].position.y <<"\n";

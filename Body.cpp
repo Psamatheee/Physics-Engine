@@ -13,7 +13,7 @@ void Body::integrate(double dt, double w, double h) {
 //    v += (1/m * F) * dt
 Vec ee = velocity + dt * inv_mass * impulse;
     Vec v{velocity.get_x() ,velocity.get_y() - dt*gravity };
-if( velocity.get_size() < 10 && impulse.get_size() < 10) {
+if( velocity.get_size() < 100 && impulse.get_size() < 100) {
     mass = 0;
    inv_mass = 0;
     gravity = 0;
@@ -246,7 +246,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     Vec a_imp = -1/dt * impulse;
     Vec b_imp = 1/dt * impulse;
     if(a.mass == 0 && a.back_up_mass != 0){
-        if(std::abs(impulse.get_x()*a.backup_inv) > 20){
+        if(std::abs(impulse.get_x()*a.backup_inv) > 20 ){
             a.mass = a.back_up_mass;
             a.inv_mass = a.backup_inv;
             a.gravity = a.back_up_grav;
@@ -255,7 +255,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
         }
     }
     if(b.mass == 0 && b.back_up_mass != 0){
-        if(std::abs(impulse.get_x()*b.backup_inv) > 20){
+        if(std::abs(impulse.get_x()*b.backup_inv) > 20 ){
             b.mass = b.back_up_mass;
             b.inv_mass = b.backup_inv;
             b.gravity = b.back_up_grav;
