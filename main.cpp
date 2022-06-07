@@ -22,53 +22,56 @@ public:
             }
                 }
         bodies.push_back(body);
-
-
-        }
-
+    }
 
     void update_physics(double dt){
 
         phase.generate_pairs();
         std::vector<Pair> pairs  = phase.get_pairs();
+        std::vector<Manifold> ms;
         for(Pair pair : pairs){
-            if(pair.a->get_shape().intersects(pair.b->get_shape()) || pair.b->get_shape().intersects(pair.a->get_shape())/*does_intersect(*pair.a,*pair.b)*/) {
+            if(pair.a->get_shape().intersects(pair.b->get_shape()) || pair.b->get_shape().intersects(pair.a->get_shape())) {
                 Body &aa = *pair.a;
                 Body &bb = *pair.b;
 
                 double e = std::min(aa.get_e(), bb.get_e());
-                Vec a_pos = aa.get_position();
-                Vec b_pos = bb.get_position();
-                Vec collision_normal = b_pos - a_pos;
+                Vec collision_normal = bb.get_position() - aa.get_position();;
                 collision_normal.normalize();
                 Manifold m = Manifold{aa, bb, e, collision_normal};
-
-
                 set_new_speeds(aa, bb, m,dt);
-                //double  ee = -1.0;
-                pair.b->normal = Vec{m.normal.get_x() * -1, m.normal.get_y() * -1};
-                pair.a->normal = m.normal;
-                if(pair.a->mass != 0 || pair.b->mass != 0) position_correction(aa, bb, m);
+                //if(pair.a->mass != 0 || pair.b->mass != 0) position_correction(aa, bb, m);
 
+                ms.push_back(m);
             }
 
         }for(Body* body : bodies){
-
-           // body->collides_wall(h,w,dt);
             body->integrate(dt,w,h);
             body->normal = Vec{0,0};
-            body->set_current(body->get_position());
-            double width = w;
-            auto end = std::remove_if(bodies.begin(),
-                                      bodies.end(),
-                                      [&width](Body* const &i) {
-                                         return (i->get_position().get_y() < -500 || i->get_position().get_x() < -500 || i->get_position().get_x() > width + 500 ) ;    // remove odd numbers
-                                      });
-            bodies.erase(end, bodies.end());
-            body->impulse = Vec{0,-body->get_mass()*body->gravity};
+         //   body->set_current(body->get_position());
+
+         //   body->impulse = Vec{0,0};
 
 
         }
+        for(Manifold m : ms){
+            position_correction(m);
+        }
+        for(Body* body : bodies){
+          //  body->integrate(dt,w,h);
+          //  body->normal = Vec{0,0};
+            body->set_current(body->get_position());
+
+           body->impulse = Vec{0,0};
+
+
+        }
+        double width = w;
+        auto end = std::remove_if(bodies.begin(),
+                                  bodies.end(),
+                                  [&width](Body* const &i) {
+                                      return (i->get_position().get_y() < -500 || i->get_position().get_x() < -500 || i->get_position().get_x() > width + 500 ) ;    // remove odd numbers
+                                  });
+        bodies.erase(end, bodies.end());
 
 
 
@@ -253,6 +256,7 @@ int main() {
             auto* aabb_test = new AABB{Vec{xx-rand_width/2, yy-rand_height/2}, Vec{xx + rand_width/2,yy + rand_height/2}};
             Body* testee = new Body{*aabb_test, 0.75, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
             testee->set_velocity(0,0);
+            testee->mass =( testee->get_shape().get_y() - testee->get_shape().get_min().get_y()) * ( testee->get_shape().get_x() - testee->get_shape().get_min().get_x()) /1000;
             state.add_body(testee);
 
 

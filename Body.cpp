@@ -11,16 +11,14 @@
 
 void Body::integrate(double dt, double w, double h) {
 //    v += (1/m * F) * dt
-Vec ee = velocity + dt * inv_mass * impulse;
+if(impulse.get_size() != 0) {
+    velocity = velocity + inv_mass * impulse;
+}else{
     Vec v{velocity.get_x() ,velocity.get_y() - dt*gravity };
-if( velocity.get_size() < 100 && impulse.get_size() < 100) {
-    mass = 0;
-   inv_mass = 0;
-    gravity = 0;
-    ee = Vec{0,0};
+    set_velocity(v);
 }
 
-    set_velocity(ee);
+   // set_velocity(ee);
 
 
 
@@ -68,10 +66,13 @@ struct Manifold{
 };
 
 
-void position_correction(Body& a, Body& b, Manifold& m){
+void position_correction(Manifold& m){
 
-    const double slop = 0.01; // usually 0.01 to 0.1
-    const double percent = 0.5; // usually 20% to 80%
+    const double slop = 0.05; // usually 0.01 to 0.1
+    const double percent = 0.4; // usually 20% to 80%
+    Body a = m.a;
+    Body b = m.b;
+
     Vec correction = (std::max(m.penetration - slop, 0.0) / (a.get_inv_mass() + b.get_inv_mass()) * percent) * m.normal;
     Vec a_pos = a.get_position();
     Vec a_correct = a.get_inv_mass() * correction;
@@ -131,67 +132,42 @@ void set_manifold(Body& a, Body& b, Manifold& m){
     if(a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::AABB){
         Rectangle aa{a.get_shape().get_min(),a.get_shape().get_max()};
         Rectangle bb{b.get_shape().get_min(),b.get_shape().get_max()};
-        Vec r = bb.max - aa.max;
-        if(r.get_x()<= 0){
-            if(r.get_y() <= 0){
-                //b intersects fully on left
-                if(bb.min.get_y() > aa.min.get_y()){
-                    m.normal = Vec{-1,0};
-                    m.penetration = bb.max.get_x() - aa.min.get_x();
-                    //b intersects fully on bottom
-                }else if(bb.min.get_x() > aa.max.get_x()){
-                    m.normal = Vec{0,-1};
-                    m.penetration = bb.max.get_y() - aa.min.get_y();
-                    //b intersects left and bottom
-                }else{
-                    double x_pen = bb.max.get_x() - aa.min.get_x();
-                    double y_pen = bb.max.get_y() - aa.min.get_y();
-                    if(x_pen < y_pen) {
-                        m.penetration = x_pen;
-                        m.normal = Vec{-1,0};
-                    }else{
-                        m.penetration = y_pen;
-                        m.normal = Vec{0,-1};
-                    }
-                }
-            }else{
-                //b intersect fully top
-                if(bb.min.get_x() > aa.min.get_x()){
-                    m.penetration = aa.max.get_y() - bb.min.get_y();
-                    m.normal = Vec{0,1};
-                }else{
-                    double x_pen = bb.max.get_x() - aa.min.get_x();
-                    double y_pen = aa.max.get_y() - bb.min.get_y();
-                    if(bb.min.get_y() < aa.min.get_y() || x_pen<y_pen){
-                        m.penetration = x_pen;
-                        m.normal = Vec{-1,0};
-                    }else{
-                        m.penetration = y_pen;
-                        m.normal= Vec{0,1};
-                    }
-                }
-            }
-        } else{
-            if(r.get_y() <= 0){
-                double x_pen = aa.max.get_x()-bb.min.get_x();
-                double y_pen = bb.max.get_y()-aa.min.get_y();
-                if(bb.min.get_y() > aa.min.get_y() || x_pen<y_pen  ){
-                    m.penetration = x_pen;
-                    m.normal = Vec{1,0};
-                }else{
-                    m.penetration = y_pen;
-                    m.normal = Vec{0,-1};
-                }
+       Vec r = Vec{(bb.max.get_x() + bb.min.get_x())/2, (bb.max.get_y()+bb.min.get_y())/2} -Vec{(aa.max.get_x() + aa.min.get_x())/2, (aa.max.get_y()+aa.min.get_y())/2} ;
+    //  Vec r = b.get_position() - a.get_position();
+        double a_extent = (aa.max.get_x() - aa.min.get_x())/2;
+        double b_extent = (bb.max.get_x() - bb.min.get_x())/2;
+        double x_overlap = a_extent + b_extent - std::abs( r.get_x() );
 
-            }else{
-                double x_pen = aa.max.get_x() - bb.min.get_x();
-                double y_pen = aa.max.get_y()-bb.min.get_y();
-                if(bb.min.get_y() < aa.min.get_y() || x_pen < y_pen){
-                    m.penetration = x_pen;
-                    m.normal = Vec{1,0};
-                }else{
-                    m.penetration = y_pen;
-                    m.normal = Vec{0,1};
+        // SAT test on x axis
+        if(x_overlap > 0)
+        {
+            // Calculate half extents along x axis for each object
+             a_extent = (aa.max.get_y() - aa.min.get_y()) / 2;
+            b_extent = (bb.max.get_y() - bb.min.get_y()) / 2;
+
+            // Calculate overlap on y axis
+            double y_overlap = a_extent + b_extent - std::abs( r.get_y() );
+
+            // SAT test on y axis
+            if(y_overlap > 0)
+            {
+                // Find out which axis is axis of least penetration
+                if(x_overlap < y_overlap)
+                {
+                    // Point towards B knowing that n points from A to B
+                    if(r.get_x() < 0) m.normal = Vec{-1, 0 };
+                    else m.normal = Vec{ 1, 0 };
+                    m.penetration = x_overlap;
+
+                }
+                else
+                {
+                    // Point toward B knowing that n points from A to B
+                    if(r.get_y() < 0)
+                        m.normal = Vec{ 0, -1 };
+                    else
+                        m.normal = Vec{ 0, 1 };
+                    m.penetration = y_overlap;
                 }
             }
         }
@@ -203,27 +179,24 @@ void set_manifold(Body& a, Body& b, Manifold& m){
 void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
 
     set_manifold(a, b, m);
-
     double Uab_normal = dotProd(b.get_velocity()-a.get_velocity(), m.normal); // initial relative velocity along the normal
-    double mass_inv_sum = 1/(a.backup_inv + b.backup_inv);
-    double current_mass_inv_sum;
-    if(a.inv_mass == 0 && b.inv_mass == 0){
-        //mass_inv_sum = 0;
-        current_mass_inv_sum = 0;
-    }else{
-
-        current_mass_inv_sum = 1/(a.get_inv_mass() +b.inv_mass);
-    }
-
     if(Uab_normal > 0) return; //moving away from each other
     double e = std::min(a.get_e(), b.get_e());
-
+    Vec speed = b.get_velocity()-a.get_velocity();
+//    if( speed.get_size() < (dt * 400 * Vec{0,-1}).get_size()  + 0.0001)
+  //      e = 0;
     //Have to do it this way so that will still work for 0 mass objects
-    double j = (-1.0 * (1+e) * Uab_normal)  * mass_inv_sum;
-    double j_curr = (-1.0 * (1+e) * Uab_normal)  * current_mass_inv_sum;
+    double j = (-1.0 * (1+e) * Uab_normal) / (a.get_inv_mass() + b.get_inv_mass());
     Vec impulse = j * m.normal;
-    Vec impulse_curr = j_curr * m.normal;
+    a.impulse = a.impulse - impulse;
+    b.impulse = b.impulse + impulse;
+    Vec a_velocity = a.get_velocity() - a.get_inv_mass() * impulse;
+    Vec b_velocity = b.get_velocity() + b.get_inv_mass() * impulse;
+  //  a.set_velocity(a_velocity);
+   // b.set_velocity(b_velocity);
 
+    //friction
+    //Vec new_normal = b.se
     Vec tangent = Vec{m.normal.get_y()*-1, m.normal.get_x()};
     if(dotProd(b.get_velocity(),tangent) > 0) {
         tangent = -1*tangent;
@@ -231,7 +204,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     tangent.normalize();
     Vec new_relative = b.get_velocity() - a.get_velocity();
     double jtt = dotProd(new_relative , tangent);
-    double jt = jtt / (a.backup_inv+ b.backup_inv);
+    double jt = jtt / (a.get_inv_mass() + b.get_inv_mass());
 
     double static_coefficient  = std::sqrt(a.static_coeff*a.static_coeff + b.static_coeff*b.static_coeff);
     double dynamic_coefficient  = std::sqrt(a.dynamic_coeff*a.dynamic_coeff + b.dynamic_coeff*b.dynamic_coeff);
@@ -241,31 +214,14 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     }else{
         friction_force = impulse.get_size() * dynamic_coefficient * tangent;
     }
+    Vec a_change = a.get_inv_mass() * friction_force;
+    Vec b_change = b.get_inv_mass() * friction_force;
 
+    a_velocity = a.get_velocity() - a_change;
+    b_velocity = b.get_velocity() + b_change;
 
-    Vec a_imp = -1/dt * impulse;
-    Vec b_imp = 1/dt * impulse;
-    if(a.mass == 0 && a.back_up_mass != 0){
-        if(std::abs(impulse.get_x()*a.backup_inv) > 20 ){
-            a.mass = a.back_up_mass;
-            a.inv_mass = a.backup_inv;
-            a.gravity = a.back_up_grav;
-        }else{
-            b_imp = 1/dt * impulse_curr;
-        }
-    }
-    if(b.mass == 0 && b.back_up_mass != 0){
-        if(std::abs(impulse.get_x()*b.backup_inv) > 20 ){
-            b.mass = b.back_up_mass;
-            b.inv_mass = b.backup_inv;
-            b.gravity = b.back_up_grav;
-        }else{
-            a_imp = -1/dt * impulse_curr;
-        }
-    }
-
-    a.impulse = a_imp + (-a.mass * a.gravity * Vec{0,1}) - 1/dt *friction_force;
-    b.impulse = b_imp + (-b.mass * b.gravity * Vec{0,1}) + 1/dt * friction_force;
+   // a.set_velocity(a_velocity);
+  //  b.set_velocity(b_velocity);
 
 
 }

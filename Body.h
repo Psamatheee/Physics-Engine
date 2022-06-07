@@ -26,7 +26,7 @@ public:
 
             gravity = 0;
         }else{
-            gravity = 500;
+            gravity = 400;
         }
         back_up_mass = mass;
         back_up_grav = gravity;
