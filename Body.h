@@ -33,6 +33,11 @@ public:
         impulse.set_x(0);
         impulse.set_y(-mass*gravity);
         backup_inv = inv_mass;
+        torque = 0;
+        angular_vel = 0;
+        angle = 0;
+        I = 0;
+
 
 
     };
@@ -100,6 +105,11 @@ private:
     Vec current;
     Vec previous;
     Vec render_pos;
+
+    double angular_vel;
+    double angle;
+    double torque;
+    double I;
 
 
 

@@ -17,6 +17,8 @@ if(impulse.get_size() != 0) {
     Vec v{velocity.get_x() ,velocity.get_y() - dt*gravity };
     set_velocity(v);
 }
+angular_vel += torque * (1/I) * dt;
+angle += angular_vel * dt;
 
    // set_velocity(ee);
 
