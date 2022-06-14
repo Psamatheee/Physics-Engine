@@ -219,7 +219,8 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
 
     a_velocity = a.get_velocity() - a_change;
     b_velocity = b.get_velocity() + b_change;
-
+a.impulse = a.impulse - friction_force;
+    b.impulse = b.impulse + friction_force;
    // a.set_velocity(a_velocity);
   //  b.set_velocity(b_velocity);
 

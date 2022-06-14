@@ -159,7 +159,7 @@ int main() {
     std::vector<Body> bodes;
     std::vector<Circle> shapes;
    State state{w,h};
-  state.add_body(&bod3);
+ // state.add_body(&bod3);
   // state.add_body(&body2);
   // state.add_body(&body);
 

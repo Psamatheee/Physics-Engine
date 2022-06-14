@@ -26,6 +26,9 @@ class Vec{
         void set_y(double yy){y = yy;
             size = sqrt(x*x + y*y);}
 
+            double cross(Vec a, Vec b){
+            return a.get_x()*b.get_y() - a.get_y()*b.get_y();
+        }
         void normalize();
 
         friend Vec operator-(const Vec& v1, const Vec& v2);
@@ -38,6 +41,30 @@ class Vec{
         double x;
         double y;
         double size;
+};
+
+struct Matrix
+{
+    union
+    {
+        struct
+        {
+            double m00, m01;
+            double m10, m11;
+        };
+
+        struct
+        {
+            Vec xCol;
+            Vec yCol;
+        };
+    };
+
+    Vec operator*(Vec a) const{
+        return Vec{m00*a.get_x() + m01*a.get_y() , m10*a.get_x() + m11*a.get_y()};
+    }
+
+
 };
 
 
@@ -76,6 +103,25 @@ public:
     virtual Vec get_min() =0;
     virtual Vec get_max() =0;
 
+};
+
+struct OBB{
+    OBB(Vec a, Vec b){
+        half_height = a;
+        half_width = b;
+    }
+    void rotate(double angle){
+        double cos = std::cos(angle);
+        double sin = std::sin(angle);
+        Matrix m{cos, -sin, sin, cos};
+        half_height = m * half_height;
+        half_width = m * half_width;
+
+
+    }
+    Vec half_height;
+    Vec half_width;
+    double orient = 0;
 };
 
 class Circle : public Shape{
