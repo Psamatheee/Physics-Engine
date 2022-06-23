@@ -17,7 +17,8 @@ if(impulse.get_size() != 0) {
     Vec v{velocity.get_x() ,velocity.get_y() - dt*gravity };
     set_velocity(v);
 }
-angular_vel += torque * (1/I) * dt;
+if(I == 0) angular_vel += torque * (0) * dt;
+else angular_vel += torque * (1/I) * dt;
 angle += angular_vel * dt;
 
    // set_velocity(ee);
@@ -223,6 +224,9 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
     b_velocity = b.get_velocity() + b_change;
 a.impulse = a.impulse - friction_force;
     b.impulse = b.impulse + friction_force;
+    if(a.get_shape().get_type() == Type::Circle && b.get_shape().get_type() == Type::Circle){
+       // a.torque += friction_force.get_size()
+    }
    // a.set_velocity(a_velocity);
   //  b.set_velocity(b_velocity);
 

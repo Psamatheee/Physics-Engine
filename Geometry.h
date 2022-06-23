@@ -5,7 +5,7 @@
 #ifndef ENGINE_GEOMETRY_H
 #define ENGINE_GEOMETRY_H
 #include <cmath>
-enum class Type {Base, Circle, AABB};
+enum class Type {Base, Circle, AABB, OBB};
 enum class Boundary {Top, Right, Bottom, Left, TR, TL, BR, BL, None};
 
 class Vec{
@@ -45,20 +45,14 @@ class Vec{
 
 struct Matrix
 {
-    union
-    {
+
         struct
         {
             double m00, m01;
             double m10, m11;
         };
 
-        struct
-        {
-            Vec xCol;
-            Vec yCol;
-        };
-    };
+
 
     Vec operator*(Vec a) const{
         return Vec{m00*a.get_x() + m01*a.get_y() , m10*a.get_x() + m11*a.get_y()};
@@ -71,6 +65,14 @@ struct Matrix
 struct Rectangle{
     Vec min;
     Vec max;
+};
+
+//represents 4 points of a rectangle starting from top right corner and going clockwise;
+struct Helper_Rect{
+    Vec point1;
+    Vec point2;
+    Vec point3;
+    Vec point4;
 };
 
 bool does_rect_intersect(Rectangle& r1, Rectangle& r2){
@@ -94,7 +96,7 @@ public:
     virtual Rectangle get_bounding_box() = 0;
 
     virtual bool intersects(Shape& shape) = 0;
-    virtual Boundary collides_boundary(double w, double h) = 0;
+  //  virtual Boundary collides_boundary(double w, double h) = 0;
 
     //Circle functions
     virtual double get_radius() = 0;
@@ -105,22 +107,71 @@ public:
 
 };
 
-struct OBB{
-    OBB(Vec a, Vec b){
-        half_height = a;
-        half_width = b;
+class OBB : Shape{
+    OBB(){
+        h = 0;
+        w = 0;
+        half_height = Vec{0,0};
+        half_width = Vec{0,0};
     }
+    OBB(double height, double width, Vec centre){
+        h = height;
+        w = width;
+        half_height = Vec{0,height/2};
+        half_width = Vec{width/2,0};
+        points.point1 = Vec{};
+        position = centre;
+    }
+
+    //Shape functions
+    Vec get_position() override{
+        return position;
+    }
+    double get_x() override{
+        return position.get_x();
+    }
+    double get_y() override{
+        return  position.get_y();
+    }
+    Type get_type() override{
+        return Type::OBB;
+    }
+
+    void set_position (double xx, double yy) override{
+        position = Vec{xx,yy};
+    }
+    Rectangle get_bounding_box() override;
+
+    bool intersects(Shape& shape) override ;
+    //Boundary collides_boundary(double w, double h) override ;
+
+    //clockwise
     void rotate(double angle){
         double cos = std::cos(angle);
         double sin = std::sin(angle);
-        Matrix m{cos, -sin, sin, cos};
+        Matrix m{cos, sin, -sin, cos};
         half_height = m * half_height;
         half_width = m * half_width;
+        orient += angle;
+        if(orient > 360) orient = orient - 360;
+        if(orient < 0) orient = 360 + orient;
+    }
 
+    Helper_Rect& get_points(){
+        points.point1 = position + half_height + half_width;
+        points.point2 = position - half_height + half_width;
+        points.point3 = position - half_height - half_width;
+        points.point4 = position + half_height - half_width;
+        return points;
 
     }
+
+    Vec position;
+    Helper_Rect points;
     Vec half_height;
     Vec half_width;
+    double h;
+    double w;
     double orient = 0;
 };
 
@@ -148,7 +199,7 @@ public:
    // Vec Get
 
     bool intersects(Shape& shape) override;
-    Boundary collides_boundary(double w, double h) override;
+   Boundary collides_boundary(double w, double h) ;
 
 private:
     const double radius;
@@ -172,7 +223,7 @@ public:
     void set_position(double xx, double yy)override;
 
     bool intersects(Shape& shape) override;
-    Boundary collides_boundary(double w, double h) override;
+    Boundary collides_boundary(double w, double h) ;
 
 private:
     Vec min;

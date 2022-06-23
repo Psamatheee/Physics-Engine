@@ -9,13 +9,22 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         sf::CircleShape circ{rad};
         circ.setOrigin(circ.getRadius(),circ.getRadius());
         circ.setFillColor(sf::Color::White);
+        sf::RectangleShape line(sf::Vector2f(circ.getRadius(), 2));
+        line.setOrigin(0,1);
+
+        line.rotate(-90);
+        line.rotate(body.angle);
+        line.setFillColor(sf::Color::Black);
+        line.setPosition(body.get_position().get_x(), h-body.get_position().get_y());
         std::cout<<h<<"\n";
         circ.setPosition((float) body.get_render().get_x(),(float) (h-body.get_render().get_y()));
+        circ.rotate(body.angle);
         circ.setOutlineThickness(-2.f);
         circ.setOutlineColor(sf::Color::Black);
       //  std::cout<<"Render: " <<body.get_render().get_x() << " " << body.get_render().get_y() <<"\n";
       if(body.gravity == 0) circ.setFillColor(sf::Color::Red);
         target.draw(circ,states);
+        target.draw(line,states);
     }
     if(body.get_shape().get_type() == Type::AABB){
         sf::VertexArray quad(sf::Quads, 4);
@@ -24,6 +33,9 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         sf::RectangleShape rectangle(sf::Vector2f(width,height));
        rectangle.setOrigin(width,0);
         rectangle.setPosition(body.get_shape().get_max().get_x(),h-body.get_shape().get_max().get_y());
+        rectangle.setOrigin(width/2,height/2);
+        rectangle.rotate(body.angle);
+
         quad[0].position = sf::Vector2f((float)body.get_render().get_x(),h - (float)body.get_render().get_y());
         quad[1].position = sf::Vector2f(quad[0].position.x,(quad[0].position.y+height));
         quad[2].position = sf::Vector2f(quad[1].position.x - width,quad[1].position.y);

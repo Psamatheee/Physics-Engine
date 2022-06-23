@@ -159,6 +159,7 @@ int main() {
     std::vector<Body> bodes;
     std::vector<Circle> shapes;
    State state{w,h};
+   int countt = 0;
  // state.add_body(&bod3);
   // state.add_body(&body2);
   // state.add_body(&body);
@@ -237,8 +238,14 @@ int main() {
            */
           auto* circ_testee = new Circle{(double) (std::rand() % 100 + 10), Vec{x,y}};
           Body* testee = new Body{*circ_testee, 0.75, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
-
+            countt++;
             testee->set_velocity(0,0);
+            if(countt%2 !=0) {
+                testee->gravity = 0;
+                testee->impulse = Vec{0, 0};
+
+            }
+            testee->angular_vel = 50;
           state.add_body(testee);
 
           added = true;
@@ -257,6 +264,9 @@ int main() {
             Body* testee = new Body{*aabb_test, 0.75, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
             testee->set_velocity(0,0);
             testee->mass =( testee->get_shape().get_y() - testee->get_shape().get_min().get_y()) * ( testee->get_shape().get_x() - testee->get_shape().get_min().get_x()) /1000;
+            testee->gravity = 0;
+            testee->impulse = Vec{0,0};
+            testee->angular_vel = 50;
             state.add_body(testee);
 
 
