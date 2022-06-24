@@ -173,6 +173,54 @@ bool AABB::intersects(Shape& shape){
         double distance_sqr = pow(closest.get_x() - shape.get_x(),2) + pow(closest.get_y() - shape.get_y(),2);
         return pow( c.get_radius(),2) >= distance_sqr;
     }
+    if(shape.get_type() == Type::OBB){
+
+        //AABB normals
+        Vec n1{0,1};
+        Vec n0{1,0};
+
+        //OBB normals
+        Vec n2 = shape.get_max();
+        Vec n3 = shape.get_min();
+        n2.normalize();
+        n3.normalize();
+
+        double half_w = (max.get_x()-min.get_x())/2;
+        double half_h = (max.get_y()-min.get_y())/2;
+        //go through all normals to check if there's a separation axis
+        //n0
+        double amax = max.get_x();
+        double amin = min.get_x();
+
+        double bmax = 0;
+        double bmin = 0;
+        Helper_Rect rect = shape.get_points();
+        for(int i = 0; i < 4; i++){
+            Vec point = rect[i];
+            double distance = dotProd(point, n0);
+            if(distance > bmax) bmax = distance;
+            if(distance < bmin) bmin = distance;
+
+
+        }
+        if(amin - bmax > 0 || bmin - amax > 0) return false; // separation along yaxis;
+
+        amax = max.get_y();
+        amin = min.get_y();
+        bmax = 0;
+        bmin = 0;
+        for(int i = 0; i < 4; i++){
+            Vec point = rect[i];
+            double distance = dotProd(point, n1);
+            if(distance > bmax) bmax = distance;
+            if(distance < bmin) bmin = distance;
+        }
+        if(amin - bmax > 0 || bmin - amax > 0) return false; // separation along xaxis;
+
+        //n2
+
+
+    }
     return false;
 
 }

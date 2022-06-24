@@ -69,6 +69,13 @@ struct Rectangle{
 
 //represents 4 points of a rectangle starting from top right corner and going clockwise;
 struct Helper_Rect{
+    Vec operator[](int i) const{
+        if(i == 0) return point1;
+        if(i == 1) return point2;
+        if(i == 2) return point3;
+        if(i == 3) return point4;
+
+    }
     Vec point1;
     Vec point2;
     Vec point3;
@@ -104,6 +111,10 @@ public:
     //AABB functions
     virtual Vec get_min() =0;
     virtual Vec get_max() =0;
+
+    //OBB functions
+    virtual void rotate(double angle) =0;
+    virtual Helper_Rect& get_points() =0;
 
 };
 
@@ -146,7 +157,7 @@ class OBB : Shape{
     //Boundary collides_boundary(double w, double h) override ;
 
     //clockwise
-    void rotate(double angle){
+    void rotate(double angle) override{
         double cos = std::cos(angle);
         double sin = std::sin(angle);
         Matrix m{cos, sin, -sin, cos};
@@ -157,7 +168,7 @@ class OBB : Shape{
         if(orient < 0) orient = 360 + orient;
     }
 
-    Helper_Rect& get_points(){
+    Helper_Rect& get_points() override {
         points.point1 = position + half_height + half_width;
         points.point2 = position - half_height + half_width;
         points.point3 = position - half_height - half_width;
@@ -165,6 +176,12 @@ class OBB : Shape{
         return points;
 
     }
+
+    //throwaway functions
+     double get_radius() override {return 0;}
+     Vec get_min() override {return half_width;}
+     Vec get_max() override {return half_height;}
+
 
     Vec position;
     Helper_Rect points;
@@ -188,6 +205,8 @@ public:
     Type get_type() override{return Type::Circle;}
     Vec get_max() override{return Vec{};}
     Vec get_min() override{return Vec{};}
+    void rotate(double angle) override{}
+    Helper_Rect& get_points() override{ };
 
     Rectangle get_bounding_box() override;
 
@@ -220,6 +239,8 @@ public:
     Vec get_min() override {return min;}
     Vec get_max() override {return max;}
     double get_radius() override{return 0;}
+    void rotate(double angle) override{}
+    Helper_Rect& get_points() override{ };
     void set_position(double xx, double yy)override;
 
     bool intersects(Shape& shape) override;
