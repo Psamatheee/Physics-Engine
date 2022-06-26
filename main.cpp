@@ -26,13 +26,18 @@ public:
 
     void update_physics(double dt){
 
-        phase.generate_pairs();
+        for(Body* body : bodies){
+            body->intersecting = false;
+        }
+       if(bodies.size() > 1) phase.generate_pairs();
         std::vector<Pair> pairs  = phase.get_pairs();
         std::vector<Manifold> ms;
         for(Pair pair : pairs){
             if(pair.a->get_shape().intersects(pair.b->get_shape()) || pair.b->get_shape().intersects(pair.a->get_shape())) {
                 Body &aa = *pair.a;
                 Body &bb = *pair.b;
+                aa.intersecting = true;
+                bb.intersecting = true;
 
                 double e = std::min(aa.get_e(), bb.get_e());
                 Vec collision_normal = bb.get_position() - aa.get_position();;
@@ -47,6 +52,7 @@ public:
         }for(Body* body : bodies){
             body->integrate(dt,w,h);
             body->normal = Vec{0,0};
+            //body->intersecting = false;
          //   body->set_current(body->get_position());
 
          //   body->impulse = Vec{0,0};
@@ -144,6 +150,8 @@ int main() {
     Circle circ{100, Vec{w / 2, h / 2}};
     Circle circ2{20, Vec{900, 200}};
     Circle circ4{100, Vec{1500, 500}};
+    OBB obb{300,300, Vec{1000,500}};
+    Body oriented{obb, 0.75,4,Vec{0,0}};
     Circle circ5{20, Vec{1000, 1200}};
     Circle circ3{50, Vec{(w/3)*2, (h/3)*2}};
     AABB ab{Vec{w/8,h/4 - 100}, Vec{7*w/8,h/4}};
@@ -160,6 +168,10 @@ int main() {
     std::vector<Circle> shapes;
    State state{w,h};
    int countt = 0;
+    oriented.gravity = 0;
+oriented.impulse = Vec{0,0};
+oriented.angular_vel = 10;
+   state.add_body(&oriented);
  // state.add_body(&bod3);
   // state.add_body(&body2);
   // state.add_body(&body);
@@ -240,12 +252,12 @@ int main() {
           Body* testee = new Body{*circ_testee, 0.75, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
             countt++;
             testee->set_velocity(0,0);
-            if(countt%2 !=0) {
+          /*  if(countt%2 !=0) {
                 testee->gravity = 0;
                 testee->impulse = Vec{0, 0};
 
             }
-            testee->angular_vel = 50;
+            testee->angular_vel = 50;*/
           state.add_body(testee);
 
           added = true;
@@ -262,11 +274,12 @@ int main() {
 
             auto* aabb_test = new AABB{Vec{xx-rand_width/2, yy-rand_height/2}, Vec{xx + rand_width/2,yy + rand_height/2}};
             Body* testee = new Body{*aabb_test, 0.75, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
-            testee->set_velocity(0,0);
+            testee->set_velocity(0,-50);
             testee->mass =( testee->get_shape().get_y() - testee->get_shape().get_min().get_y()) * ( testee->get_shape().get_x() - testee->get_shape().get_min().get_x()) /1000;
             testee->gravity = 0;
+            //testee->gravity = 0;
             testee->impulse = Vec{0,0};
-            testee->angular_vel = 50;
+           // testee->angular_vel = 50;
             state.add_body(testee);
 
 

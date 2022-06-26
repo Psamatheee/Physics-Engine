@@ -15,7 +15,9 @@ public:
     DrawBody(Body& bod, double height, sf::Color color) : body(bod), h(height), color(color){}
 
     void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
-
+void set_colour(sf::Color col){
+    color = col;
+}
 
 private:
     const Body& body;

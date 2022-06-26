@@ -19,8 +19,9 @@ if(impulse.get_size() != 0) {
 }
 if(I == 0) angular_vel += torque * (0) * dt;
 else angular_vel += torque * (1/I) * dt;
-angle += angular_vel * dt;
-
+//angle += angular_vel * dt;
+shape.rotate(angular_vel*dt);
+angle = shape.get_orient();
    // set_velocity(ee);
 
 
@@ -180,7 +181,7 @@ void set_manifold(Body& a, Body& b, Manifold& m){
 
 
 void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
-
+if(a.get_shape().get_type() == Type::OBB || b.get_shape().get_type() == Type::OBB) return;
     set_manifold(a, b, m);
     double Uab_normal = dotProd(b.get_velocity()-a.get_velocity(), m.normal); // initial relative velocity along the normal
     if(Uab_normal > 0) return; //moving away from each other
@@ -253,8 +254,9 @@ public:
             a.min = bodies[i]->get_shape().get_bounding_box().min;
             a.max = bodies[i]->get_shape().get_bounding_box().max;
             while (j < bodies.size()){
-                    b = bodies[j]->get_shape().get_bounding_box();
-                    if(does_rect_intersect(a,b)){
+                    b.min = bodies[j]->get_shape().get_bounding_box().min  ;
+                b.max = bodies[j]->get_shape().get_bounding_box().max  ;
+                if(does_rect_intersect(a,b)){
                         Body* ap = bodies[i];
                         Body* bp = bodies[j];
                         pairs.push_back(Pair{ap,bp});

@@ -116,9 +116,12 @@ public:
     virtual void rotate(double angle) =0;
     virtual Helper_Rect& get_points() =0;
 
+    virtual double get_orient() =0;
+
 };
 
-class OBB : Shape{
+class OBB : public Shape{
+public:
     OBB(){
         h = 0;
         w = 0;
@@ -133,7 +136,7 @@ class OBB : Shape{
         points.point1 = Vec{};
         position = centre;
     }
-
+double get_orient()override{return orient;}
     //Shape functions
     Vec get_position() override{
         return position;
@@ -153,19 +156,27 @@ class OBB : Shape{
     }
     Rectangle get_bounding_box() override;
 
-    bool intersects(Shape& shape) override ;
+    bool intersects(Shape& shape) override{
+        if(shape.get_type() == Type::AABB){
+            OBB temp{half_height.get_size(),half_width.get_size(),position};
+            return shape.intersects(temp);
+        }
+        return false;
+    }
     //Boundary collides_boundary(double w, double h) override ;
 
     //clockwise
     void rotate(double angle) override{
-        double cos = std::cos(angle);
-        double sin = std::sin(angle);
+        double conv = M_PI / 180;
+        double cos = std::cos((angle * conv));
+        double sin = std::sin(angle * conv);
         Matrix m{cos, sin, -sin, cos};
         half_height = m * half_height;
         half_width = m * half_width;
         orient += angle;
         if(orient > 360) orient = orient - 360;
         if(orient < 0) orient = 360 + orient;
+        get_points();
     }
 
     Helper_Rect& get_points() override {
@@ -209,7 +220,7 @@ public:
     Helper_Rect& get_points() override{ };
 
     Rectangle get_bounding_box() override;
-
+double get_orient() override {return 0;}
     void set_position(double xx, double yy) override{
         centre.set_x(xx);
         centre.set_y(yy);
@@ -229,6 +240,7 @@ class AABB : public Shape{
 public:
     AABB(Vec min, Vec max) : min(min), max(max){};
 
+    double get_orient() override {return 0;}
     Vec get_position() override {return max;}
     double get_x() override {return max.get_x();}
     double get_y() override {return max.get_y();}

@@ -185,8 +185,8 @@ bool AABB::intersects(Shape& shape){
         n2.normalize();
         n3.normalize();
 
-        double half_w = (max.get_x()-min.get_x())/2;
-        double half_h = (max.get_y()-min.get_y())/2;
+        double w = (max.get_x()-min.get_x());
+        double h = (max.get_y()-min.get_y());
         //go through all normals to check if there's a separation axis
         //n0
         double amax = max.get_x();
@@ -205,6 +205,7 @@ bool AABB::intersects(Shape& shape){
         }
         if(amin - bmax > 0 || bmin - amax > 0) return false; // separation along yaxis;
 
+        //n1
         amax = max.get_y();
         amin = min.get_y();
         bmax = 0;
@@ -218,6 +219,51 @@ bool AABB::intersects(Shape& shape){
         if(amin - bmax > 0 || bmin - amax > 0) return false; // separation along xaxis;
 
         //n2
+        bmax = dotProd(rect.point1, n2);
+        bmin = dotProd(rect.point2,n2);
+        if(bmin > bmax) {
+            double temp = bmin;
+            bmin = bmax;
+            bmax = temp;
+        }
+         amin = dotProd(max,n2);
+        amax = amin;
+        double temp = dotProd(Vec{max.get_x(), max.get_y()-h}, n2);
+        if (amax < temp) amax = temp;
+        if ( temp < amin) amin = temp;
+        temp = dotProd(min,n2);
+
+        if (amax < temp) amax = temp;
+        if ( temp < amin) amin = temp;
+        temp = dotProd(Vec{min.get_x(), min.get_y()+h}, n2);
+        if (amax < temp) amax = temp;
+        if ( temp < amin) amin = temp;
+
+        if(amin - bmax > 0 || bmin - amax > 0) return false; // separation along n3
+
+        //n3
+        bmax = dotProd(rect.point1, n3);
+        bmin = dotProd(rect.point3,n3);
+        if(bmin > bmax) {
+            temp = bmin;
+            bmin = bmax;
+            bmax = temp;
+        }
+        amin = dotProd(max,n3);
+        amax = amin;
+        temp = dotProd(Vec{max.get_x(), max.get_y()-h}, n3);
+        if (amax < temp) amax = temp;
+        if ( temp < amin) amin = temp;
+        temp = dotProd(min,n3);
+
+        if (amax < temp) amax = temp;
+        if ( temp < amin) amin = temp;
+        temp = dotProd(Vec{min.get_x(), min.get_y()+h}, n3);
+        if (amax < temp) amax = temp;
+        if ( temp < amin) amin = temp;
+
+        if(amin - bmax > 0 || bmin - amax > 0) return false; // separation along n2
+        return true; // no axis of separation
 
 
     }
@@ -250,5 +296,29 @@ bool intersects(Shape& a, Shape& b){
 }
 
 Vec get_normal(Shape& a, Shape& b) {
+
+}
+
+Rectangle OBB::get_bounding_box() {
+
+        Rectangle rect;
+        double max_x =0;
+        double max_y = 0;
+        double min_x = 1000000000000;
+        double min_y = 10000000000000;
+        get_points();
+        for(int i = 0; i < 4; i++){
+           double t_max_x = dotProd(points[i], Vec{1,0});
+          double  t_max_y = dotProd(points[i], Vec{0,1});
+            double t_min_x = t_max_x;
+           double t_min_y = t_max_y;
+            if(t_max_x > max_x) max_x = t_max_x;
+            if(t_max_y > max_y) max_y = t_max_y;
+            if(t_min_x < min_x) min_x = t_min_x;
+            if(t_min_y < min_y) min_y = t_min_y;
+        }
+        rect.max = Vec{max_x,max_y};
+        rect.min = Vec{min_x,min_y};
+        return rect;
 
 }

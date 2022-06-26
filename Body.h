@@ -37,12 +37,7 @@ public:
         angular_vel = 0;
         angle = 0;
         I = 0;
-        if(shape.get_type() == Type::AABB){
 
-            orientation = OBB{Vec{0,(shape.get_max().get_y() - shape.get_min().get_y())/2}, Vec{(shape.get_max().get_x() - shape.get_min().get_x())/2,0}};
-        }else{
-            orientation = OBB{Vec{0,shape.get_radius()}, Vec{shape.get_radius(),0}};
-        }
 
 
 
@@ -102,9 +97,10 @@ Vec normal = Vec{};
 double dynamic_coeff = 0.021;
     double static_coeff = 0.014;
 double back_up_grav;
-    OBB orientation;
+   // OBB orientation;
     double angular_vel;
     double angle;
+    bool intersecting = false;
 private:
     Shape& shape;
     double rest_const;

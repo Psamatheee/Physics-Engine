@@ -67,5 +67,45 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 
 
     }
+    if(body.get_shape().get_type() == Type::OBB){
+
+        OBB ob{body.get_shape().get_max().get_size(), body.get_shape().get_min().get_size(), body.get_shape().get_position()};
+
+        sf::VertexArray quad(sf::Quads, 4);
+        Helper_Rect rect = body.get_shape().get_points();
+       quad[0].position = sf::Vector2f( rect[0].get_x(), h-rect[0].get_y());
+        quad[1].position = sf::Vector2f( rect[1].get_x(), h-rect[1].get_y());
+        quad[2].position = sf::Vector2f( rect[2].get_x(), h-rect[2].get_y());
+        quad[3].position = sf::Vector2f( rect[3].get_x(), h-rect[3].get_y());
+        if(body.intersecting) {
+            quad[0].color = sf::Color::Red;
+            quad[1].color = sf::Color::Red;
+            quad[2].color = sf::Color::Red;
+            quad[3].color = sf::Color::Red;
+        }else{
+            quad[0].color = sf::Color::Black;
+            quad[1].color = sf::Color::Black;
+            quad[2].color = sf::Color::Black;
+            quad[3].color = sf::Color::Black;
+        }
+
+        Rectangle bound = body.get_shape().get_bounding_box();
+        double height = bound.max.get_y() - bound.min.get_y();
+        double width = bound.max.get_x() - bound.min.get_x();
+        sf::VertexArray quadd(sf::Quads, 4);
+        quadd[0].position = sf::Vector2f(bound.max.get_x(), h - (float)bound.max.get_y());
+        quadd[1].position = sf::Vector2f(quadd[0].position.x,(quadd[0].position.y+height));
+        quadd[2].position = sf::Vector2f(quadd[1].position.x - width,quadd[1].position.y);
+        quadd[3].position = sf::Vector2f(quadd[2].position.x  ,( quadd[2].position.y-height));
+
+
+        quadd[0].color = sf::Color::Cyan;
+        quadd[1].color = sf::Color::Cyan;
+        quadd[2].color = sf::Color::Cyan;
+        quadd[3].color = sf::Color::Cyan;
+        target.draw(quadd,states);
+        target.draw(quad,states);
+
+    }
 
 }
