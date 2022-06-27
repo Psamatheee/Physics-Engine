@@ -33,18 +33,18 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         sf::RectangleShape rectangle(sf::Vector2f(width,height));
        rectangle.setOrigin(width,0);
         rectangle.setPosition(body.get_shape().get_max().get_x(),h-body.get_shape().get_max().get_y());
-        rectangle.setOrigin(width/2,height/2);
-        rectangle.rotate(body.angle);
+       // rectangle.setOrigin(width/2,height/2);
+      //  rectangle.rotate(body.angle);
 
         quad[0].position = sf::Vector2f((float)body.get_render().get_x(),h - (float)body.get_render().get_y());
         quad[1].position = sf::Vector2f(quad[0].position.x,(quad[0].position.y+height));
         quad[2].position = sf::Vector2f(quad[1].position.x - width,quad[1].position.y);
         quad[3].position = sf::Vector2f(quad[2].position.x  ,( quad[2].position.y-height));
         rectangle.setFillColor(sf::Color::White);
-        if(body.gravity == 0) rectangle.setFillColor(sf::Color::Red);
+        if(body.intersecting) rectangle.setFillColor(sf::Color::Red);
         rectangle.setOutlineThickness(-3.f);
         rectangle.setOutlineColor(sf::Color::Black);
-        if(body.gravity == 0) {
+        if(body.intersecting) {
             quad[0].color = sf::Color::Red;
             quad[1].color = sf::Color::Red;
             quad[2].color = sf::Color::Red;
@@ -55,6 +55,21 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
             quad[2].color = sf::Color::Black;
             quad[3].color = sf::Color::Black;
         }
+        Rectangle bound = body.get_shape().get_bounding_box();
+        double heightt = bound.max.get_y() - bound.min.get_y();
+        double widtht = bound.max.get_x() - bound.min.get_x();
+        sf::VertexArray quadd(sf::Quads, 4);
+        quadd[0].position = sf::Vector2f(bound.max.get_x(), h - (float)bound.max.get_y());
+        quadd[1].position = sf::Vector2f(quadd[0].position.x,(quadd[0].position.y+heightt));
+        quadd[2].position = sf::Vector2f(quadd[1].position.x - widtht,quadd[1].position.y);
+        quadd[3].position = sf::Vector2f(quadd[2].position.x  ,( quadd[2].position.y-heightt));
+
+
+        quadd[0].color = sf::Color::Green;
+        quadd[1].color = sf::Color::Green;
+        quadd[2].color = sf::Color::Green;
+        quadd[3].color = sf::Color::Green;
+        target.draw(quadd,states);
 
 
     /*    std::cout <<"quad: " << quad[0].position.x << " " << quad[0].position.y <<"\n";

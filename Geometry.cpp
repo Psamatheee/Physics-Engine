@@ -192,9 +192,9 @@ bool AABB::intersects(Shape& shape){
         double amax = max.get_x();
         double amin = min.get_x();
 
-        double bmax = 0;
-        double bmin = 0;
         Helper_Rect rect = shape.get_points();
+        double bmin = dotProd(rect[0], n0);
+        double bmax = dotProd(rect[0], n0);
         for(int i = 0; i < 4; i++){
             Vec point = rect[i];
             double distance = dotProd(point, n0);
@@ -208,8 +208,8 @@ bool AABB::intersects(Shape& shape){
         //n1
         amax = max.get_y();
         amin = min.get_y();
-        bmax = 0;
-        bmin = 0;
+        bmin = dotProd(rect[0], n0);
+        bmax = dotProd(rect[0], n0);
         for(int i = 0; i < 4; i++){
             Vec point = rect[i];
             double distance = dotProd(point, n1);

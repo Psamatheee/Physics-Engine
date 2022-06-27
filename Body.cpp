@@ -76,6 +76,7 @@ void position_correction(Manifold& m){
     const double percent = 0.4; // usually 20% to 80%
     Body a = m.a;
     Body b = m.b;
+    if(a.get_shape().get_type() == Type::OBB || b.get_shape().get_type() == Type::OBB) return;
 
     Vec correction = (std::max(m.penetration - slop, 0.0) / (a.get_inv_mass() + b.get_inv_mass()) * percent) * m.normal;
     Vec a_pos = a.get_position();
