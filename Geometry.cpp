@@ -54,6 +54,12 @@ bool Circle::intersects(Shape &shape) {
         Circle c{radius,centre};
         return shape.intersects(c);
     }
+    if(shape.get_type() == Type::OBB){
+        OBB temp{shape.get_max().get_size(), shape.get_min().get_size(), shape.get_position()};
+        temp.rotate(shape.get_orient());
+        Circle circ{radius,centre};
+        return temp.intersects(circ);
+    }
     return false;
 }
 
@@ -321,4 +327,28 @@ Rectangle OBB::get_bounding_box() {
         rect.min = Vec{min_x,min_y};
         return rect;
 
+}
+
+bool OBB::intersects(Shape& shape) {
+    OBB temp{half_height.get_size(),half_width.get_size(),position};
+    if(shape.get_type() == Type::AABB){
+
+     temp.rotate(orient);
+     return shape.intersects(temp);
+}
+    if(shape.get_type() == Type::Circle){
+        double angle = -orient;
+        Vec og_pos = shape.get_position();
+        double conv = M_PI / 180;
+        double cos = std::cos((angle * conv));
+        double sin = std::sin(angle * conv);
+        Matrix m{cos, sin, -sin, cos};
+        Vec model_pos = m * og_pos;
+        Circle circ{shape.get_radius(), model_pos};
+        Helper_Rect rect = get_points();
+        AABB model_rect{m*rect.point3,m*rect.point1};
+        return model_rect.intersects(circ);
+
+}
+return false;
 }

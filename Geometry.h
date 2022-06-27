@@ -83,10 +83,13 @@ struct Helper_Rect{
 };
 
 bool does_rect_intersect(Rectangle& r1, Rectangle& r2){
-    // check if there is separation along the x-axis
+    // check if the
+    //re is separation along the x-axis
+    double ee = 0;
     if (r1.min.get_x() > r2.max.get_x() || r1.max.get_x() < r2.min.get_x()) return false;
     // check if there is separation along the y-.get_x()is
     if (r1.min.get_y() > r2.max.get_y()|| r1.max.get_y() < r2.min.get_y()) return false;
+    ee = 1;
     return true;
 }
 
@@ -156,13 +159,7 @@ double get_orient()override{return orient;}
     }
     Rectangle get_bounding_box() override;
 
-    bool intersects(Shape& shape) override{
-        if(shape.get_type() == Type::AABB){
-            OBB temp{half_height.get_size(),half_width.get_size(),position};
-            return shape.intersects(temp);
-        }
-        return false;
-    }
+   bool intersects(Shape& shape) override;
     //Boundary collides_boundary(double w, double h) override ;
 
     //clockwise

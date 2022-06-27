@@ -22,7 +22,7 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         circ.setOutlineThickness(-2.f);
         circ.setOutlineColor(sf::Color::Black);
       //  std::cout<<"Render: " <<body.get_render().get_x() << " " << body.get_render().get_y() <<"\n";
-      if(body.gravity == 0) circ.setFillColor(sf::Color::Red);
+      if(body.intersecting) circ.setFillColor(sf::Color::Red);
         target.draw(circ,states);
         target.draw(line,states);
     }
@@ -118,7 +118,7 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         quadd[1].color = sf::Color::Cyan;
         quadd[2].color = sf::Color::Cyan;
         quadd[3].color = sf::Color::Cyan;
-        target.draw(quadd,states);
+     //   target.draw(quadd,states);
         target.draw(quad,states);
 
     }
