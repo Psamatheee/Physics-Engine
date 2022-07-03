@@ -81,10 +81,8 @@ public:
     }
 
 
-    bool collides_wall(double h, double w,double dt);
     void integrate(double dt, double w, double h);
 
-    friend bool does_intersect(Body& a, Body& b);
     friend bool operator==(Body a, Body b);
     friend bool operator!=(Body a, Body b);
 double  gravity;

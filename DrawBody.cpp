@@ -84,7 +84,7 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
     }
     if(body.get_shape().get_type() == Type::OBB){
 
-        OBB ob{body.get_shape().get_max().get_size(), body.get_shape().get_min().get_size(), body.get_shape().get_position()};
+        OBB ob{body.get_shape().get_max(), body.get_shape().get_min(), body.get_shape().get_position()};
 
         sf::VertexArray quad(sf::Quads, 4);
         Helper_Rect rect = body.get_shape().get_points();
