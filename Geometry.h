@@ -147,6 +147,9 @@ public:
 
     void rotate_origin(double angle);
 
+    //obb functions
+    Vec get_normal(int i);
+
     //throwaway functions
      double get_radius() override {return 0;}
      Vec get_min() override {return half_width;}

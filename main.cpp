@@ -77,9 +77,9 @@ oriented.angular_vel = 10;
           auto* circ_testee = new Circle{(double) (std::rand() % 100 + 10), Vec{x,y}};
           Body* testee = new Body{*circ_testee, 0.75, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
             countt++;
-            testee->set_velocity(0,-200);
-            testee->gravity = 0;
-            testee->impulse = Vec{0,0};
+           testee->set_velocity(0,0);
+          //  testee->gravity = 500;
+           // testee->impulse = Vec{0,0};
           state.add_body(testee);
           added = true;
 

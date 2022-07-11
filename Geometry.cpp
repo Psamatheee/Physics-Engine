@@ -2,6 +2,7 @@
 // Created by julia on 08/05/22.
 //
 
+#include <cfloat>
 #include "Geometry.h"
 
 void Vec::normalize() {
@@ -363,4 +364,38 @@ points.point3 = position - half_height - half_width;
 points.point4 = position + half_height - half_width;
 return points;
 
+}
+
+Vec OBB::get_normal(int i) {
+    Vec n{};
+    if(i == 0 || i == 2) n = half_height;
+    if(i == 1 || i == 3) n = half_width;
+    if(i == 2 || i == 3) n = -1 * n;
+    n.normalize();
+    return n;
+}
+
+double get_collision_normal(OBB& a, OBB& b, Vec& axis){
+    Helper_Rect rect = b.get_points();
+    Helper_Rect a_rect = a.get_points();
+    double penetration = 0;
+    for(int i = 0; i < 4; i++){
+        Vec n = -1 * a.get_normal(i);
+        Vec point{};
+        double distance = 0;
+        //get most extreme point along the normal
+        int face = 0;
+        for(int j = 0; j < 4; j ++){
+            double temp = dotProd(rect[i], n);
+            if (temp > distance) {
+                distance = temp;
+                point = rect[i];
+                face = i;
+            }
+        }
+        double temp = dotProd(point - a_rect[face], n);
+        if (temp > penetration) penetration = temp;
+        axis = -1 * n;
+    }
+    return penetration;
 }

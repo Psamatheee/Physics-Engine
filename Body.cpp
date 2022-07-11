@@ -177,6 +177,18 @@ void set_manifold(Body& a, Body& b, Manifold& m){
             }
         }
     }
+    if(a.get_shape().get_type() == Type::OBB && b.get_shape().get_type() == Type::OBB ){
+        Vec normal{};
+        OBB aa{a.get_shape().get_max(), a.get_shape().get_min(), a.get_position()};
+        aa.orient = a.get_shape().get_orient();
+        OBB bb{b.get_shape().get_max(), b.get_shape().get_min(), b.get_position()};
+        bb.orient = b.get_shape().get_orient();
+
+        double penetration = get_collision_normal(aa,bb,normal);
+        m.normal = normal;
+        m.penetration = penetration;
+
+    }
 }
 
 
