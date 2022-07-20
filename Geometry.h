@@ -41,6 +41,11 @@ class Vec{
         double size;
 };
 
+struct Edge{
+    Vec point1;
+    Vec point2;
+};
+
 struct Matrix
 {
         struct
