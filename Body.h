@@ -112,6 +112,8 @@ private:
     double torque;
     double I;
 
+    std::vector<Vec> contact_points;
+
 
 };
 

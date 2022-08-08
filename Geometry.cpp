@@ -375,27 +375,90 @@ Vec OBB::get_normal(int i) {
     return n;
 }
 
-double get_collision_normal(OBB& a, OBB& b, Vec& axis){
-    Helper_Rect rect = b.get_points();
-    Helper_Rect a_rect = a.get_points();
-    double penetration = 0;
-    for(int i = 0; i < 4; i++){
-        Vec n = -1 * a.get_normal(i);
-        Vec point{};
-        double distance = 0;
-        //get most extreme point along the normal
-        int face = 0;
-        for(int j = 0; j < 4; j ++){
-            double temp = dotProd(rect[i], n);
-            if (temp > distance) {
-                distance = temp;
-                point = rect[i];
-                face = i;
-            }
+std::vector<Edge> OBB::get_edges() {
+    std::vector<Edge> edges;
+    edges.push_back(Edge{position + half_height - half_width, position + half_height + half_width});
+    edges.push_back(Edge{position + half_height + half_width, position - half_height + half_width});
+    edges.push_back(Edge{position - half_height + half_width, position - half_height - half_width});
+    edges.push_back(Edge{position - half_height - half_width, position + half_height - half_width});
+}
+
+double get_min_point(Helper_Rect& rect, Vec& axis, Vec& point){
+    double pen = FLT_MAX;
+    point = Vec{};
+    for(int i =0; i < 4; i++){
+        if(dotProd(axis,rect[i]) < pen) {
+            pen =  dotProd(axis,rect[i]);
+            point = rect[i];
         }
-        double temp = dotProd(point - a_rect[face], n);
-        if (temp > penetration) penetration = temp;
-        axis = -1 * n;
     }
+    return pen;
+}
+double get_max_point(Helper_Rect& rect, Vec& axis, Vec& point){
+    double pen = 0;
+    point = Vec{};
+    for(int i =0; i < 4; i++){
+        if(dotProd(axis,rect[i]) > pen) {
+            pen =  dotProd(axis,rect[i]);
+            point = rect[i];
+        }
+    }
+    return pen;
+}
+
+double get_collision_normal(OBB& a, OBB& b, Edge& edge){
+    Helper_Rect b_rect = b.get_points();
+    Helper_Rect a_rect = a.get_points();
+
+    double penetration = FLT_MAX;
+
+    Vec n1 = a.get_max();
+    Vec n2 = a.get_min();
+    n1.normalize();
+    n2.normalize();
+
+    Vec max_a = a.get_position() + a.half_height + a.half_width;
+    Vec min_a = a.get_position() - a.half_height - a.half_width;
+
+    //n1
+    Vec max_b{};
+    Vec min_b{};
+    get_max_point(b_rect, n1, max_b);
+    get_min_point(b_rect, n1, min_b);
+    double aa = dotProd(max_a, n1) - dotProd(min_b, n1);
+    double bb = dotProd(max_b, n1) - dotProd(min_a, n1);
+
+    if(aa < bb && aa < penetration){
+        penetration = aa;
+        edge[0] = a_rect[0];
+        edge[1] = a_rect[1];
+    }
+    if(bb < aa && bb < penetration){
+        penetration = bb;
+        edge[0] = a_rect[2];
+        edge[1] = a_rect[3];
+    }
+
+    //n2
+    get_max_point(b_rect, n2, max_b);
+    get_min_point(b_rect, n2, min_b);
+     aa = dotProd(max_a, n2) - dotProd(min_b, n2);
+     bb = dotProd(max_b, n2) - dotProd(min_a, n2);
+
+    if(aa < bb && aa < penetration){
+        penetration = aa;
+        edge[0] = a_rect[1];
+        edge[1] = a_rect[2];
+    }
+    if(bb < aa && bb < penetration){
+        penetration = bb;
+        edge[0] = a_rect[3];
+        edge[1] = a_rect[1];
+    }
+
     return penetration;
+
+
+
+
 }

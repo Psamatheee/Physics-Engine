@@ -66,6 +66,8 @@ struct Manifold{
     Body& b;
     double penetration;
     Vec normal;
+    std::vector<Vec> contacts;
+
 
 };
 
@@ -116,6 +118,28 @@ void calculate_manifold_AABBvsCircle(Body& a, Body& b, Manifold& m){
 
     centreLine.normalize();
     m.normal = Vec{centreLine.get_x(), centreLine.get_y()};
+}
+
+int clip(Vec normal, double dot_prod, Edge& edge){
+
+    double d1 = dotProd(normal, edge[0]) - dot_prod;
+    double d2 = dotProd(normal, edge[1]) - dot_prod;
+    int count = 0;
+    if(d1 < 0) count++;
+    if(d2 < 0) count++;
+
+    //clip 1st point
+    if(d1 * d2 < 0){
+        if(d1 >= 0){
+            edge[0] = edge[0] + d1/(d1-d2) * (edge[1] - edge[0]);
+            count++;
+        }
+        else if( d2 >= 0){
+            edge[1] = edge[1] - d1/(d1-2) * (edge[0] - edge[1]);
+            count++;
+        }
+    }
+    return count;
 }
 
 void set_manifold(Body& a, Body& b, Manifold& m){
@@ -178,42 +202,107 @@ void set_manifold(Body& a, Body& b, Manifold& m){
         }
     }
     if(a.get_shape().get_type() == Type::OBB && b.get_shape().get_type() == Type::OBB ){
+
+        double penetration;
         Vec normal{};
         OBB aa{a.get_shape().get_max(), a.get_shape().get_min(), a.get_position()};
         aa.orient = a.get_shape().get_orient();
         OBB bb{b.get_shape().get_max(), b.get_shape().get_min(), b.get_position()};
         bb.orient = b.get_shape().get_orient();
 
-        double penetration = get_collision_normal(aa,bb,normal);
+        Edge edgeA;
+        Edge edgeB;
+        Edge ref;
+        Edge inc;
+
+        double penetration_a = get_collision_normal(aa,bb,edgeA);
+        double penetration_b = get_collision_normal(bb,aa,edgeB);
+
+        bool flip;
+        if(penetration_a < penetration_b){
+            //a has the reference face
+            penetration = penetration_a;
+            ref = edgeA;
+            inc = edgeB;
+            flip = false;
+        }
+        if(penetration_b < penetration_a){
+            //b has the reference face
+            ref = edgeB;
+            inc = edgeA;
+            penetration = penetration_b;
+            flip = true;
+        }
+
+       normal = ref[1] - ref[0];
+        normal.set_x(normal.get_y() * -1);
+        normal.set_y(normal.get_x());
+        normal.normalize();
+
+
         m.normal = normal;
         m.penetration = penetration;
+
+        //clip the sides of the reference face
+
+        m.normal = normal;
+        m.penetration = penetration;
+
+        //clip the sides of the reference face
+       Vec side_normal = ref[1] - ref[0];
+        side_normal.normalize();
+
+        double left = dotProd(-1 * side_normal, ref[0]);
+        double right = dotProd( side_normal, ref[1]);
+
+        if( clip(side_normal, right, inc) > 2) return;
+        if( clip(-1 * side_normal, left, inc) > 2) return;
+
+        if(flip ) normal = -1 * normal;
+        //pick only points behind reference edge;
+       double distance = dotProd(normal, ref[0]);
+       double point1_dist = dotProd(inc[0],normal);
+        double point2_dist = dotProd(inc[1],normal);
+        int count = 0;
+       if(point1_dist < distance){
+           m.contacts.push_back(inc[0]) ;
+           m.penetration = distance - point1_dist;
+           count++;
+       }
+        if(point2_dist < distance){
+            m.contacts.push_back(inc[1]) ;
+            m.penetration = distance - point2_dist;
+            count++;
+        }
+        m.penetration/=count;
 
     }
 }
 
 
 
+
+
+
 void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
-if(a.get_shape().get_type() == Type::OBB || b.get_shape().get_type() == Type::OBB) return;
+
     set_manifold(a, b, m);
+
+
+    if(a.get_shape().get_type() == Type::OBB || b.get_shape().get_type() == Type::OBB) {
+
+    }
+
     double Uab_normal = dotProd(b.get_velocity()-a.get_velocity(), m.normal); // initial relative velocity along the normal
     if(Uab_normal > 0) return; //moving away from each other
     double e = std::min(a.get_e(), b.get_e());
-    Vec speed = b.get_velocity()-a.get_velocity();
-//    if( speed.get_size() < (dt * 400 * Vec{0,-1}).get_size()  + 0.0001)
-  //      e = 0;
+
     //Have to do it this way so that will still work for 0 mass objects
     double j = (-1.0 * (1+e) * Uab_normal) / (a.get_inv_mass() + b.get_inv_mass());
     Vec impulse = j * m.normal;
     a.impulse = a.impulse - impulse;
     b.impulse = b.impulse + impulse;
-    Vec a_velocity = a.get_velocity() - a.get_inv_mass() * impulse;
-    Vec b_velocity = b.get_velocity() + b.get_inv_mass() * impulse;
-  //  a.set_velocity(a_velocity);
-   // b.set_velocity(b_velocity);
 
-    //friction
-    //Vec new_normal = b.se
     Vec tangent = Vec{m.normal.get_y()*-1, m.normal.get_x()};
     if(dotProd(b.get_velocity(),tangent) > 0) {
         tangent = -1*tangent;
@@ -231,18 +320,10 @@ if(a.get_shape().get_type() == Type::OBB || b.get_shape().get_type() == Type::OB
     }else{
         friction_force = impulse.get_size() * dynamic_coefficient * tangent;
     }
-    Vec a_change = a.get_inv_mass() * friction_force;
-    Vec b_change = b.get_inv_mass() * friction_force;
 
-    a_velocity = a.get_velocity() - a_change;
-    b_velocity = b.get_velocity() + b_change;
 a.impulse = a.impulse - friction_force;
     b.impulse = b.impulse + friction_force;
-    if(a.get_shape().get_type() == Type::Circle && b.get_shape().get_type() == Type::Circle){
-       // a.torque += friction_force.get_size()
-    }
-   // a.set_velocity(a_velocity);
-  //  b.set_velocity(b_velocity);
+
 
 
 }

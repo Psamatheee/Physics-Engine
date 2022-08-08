@@ -44,7 +44,15 @@ class Vec{
 struct Edge{
     Vec point1;
     Vec point2;
+
+
+    Vec& operator[] (int i){
+        if(i == 0) return point1;
+        if(i == 1) return point2;
+    }
 };
+
+
 
 struct Matrix
 {
@@ -142,6 +150,7 @@ public:
     double get_y() override{return position.get_y();}
     double get_orient()override{return orient;}
     Type get_type() override{return Type::OBB;}
+    std::vector<Edge> get_edges();
     //setters
     void set_position (double xx, double yy) override{position = Vec{xx,yy};}
 
