@@ -26,14 +26,14 @@ class Vec{
         void set_y(double yy){y = yy;
             size = sqrt(x*x + y*y);}
 
-            double cross(Vec a, Vec b){
-            return a.get_x()*b.get_y() - a.get_y()*b.get_y();
-        }
+
         void normalize();
+        Vec orthogonalize();//orthogonal
 
         friend Vec operator-(const Vec& v1, const Vec& v2);
         friend Vec operator+(const Vec& v1,const  Vec& v2);
         friend Vec operator*(double num, const Vec& v);
+        friend bool operator==(const Vec v1, const Vec v2);
 
         private:
         double x;

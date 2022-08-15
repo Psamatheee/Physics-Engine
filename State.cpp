@@ -17,6 +17,7 @@ void State::update_physics(double dt){
 
     for(Body* body : bodies){
         body->intersecting = false;
+        body->contacts.clear();
     }
     if(bodies.size() > 1) phase.generate_pairs();
     std::vector<Pair> pairs  = phase.get_pairs();
@@ -33,14 +34,14 @@ void State::update_physics(double dt){
             collision_normal.normalize();
             Manifold m = Manifold{aa, bb, e, collision_normal};
             set_new_speeds(aa, bb, m,dt);
-            //if(pair.a->mass != 0 || pair.b->mass != 0) position_correction(aa, bb, m);
+          //  if(pair.a->mass != 0 || pair.b->mass != 0) position_correction( m);
 
             ms.push_back(m);
         }
 
     }for(Body* body : bodies){
         body->integrate(dt,w,h);
-        body->normal = Vec{0,0};
+       // body->normal = Vec{0,0};
         //body->intersecting = false;
         //   body->set_current(body->get_position());
 
@@ -86,6 +87,6 @@ void State::reset(){
     bodies.erase(bodies.begin(), bodies.end());
     bodies.clear();
     AABB* ab = new AABB{Vec{w/8,h/4 - 100}, Vec{7*w/8,h/4}};
-    Body* bod3 = new Body{*ab, 0.75, 0,Vec{0,0}};
+    Body* bod3 = new Body{*ab, 0,Vec{0,0}};
     bodies.push_back(bod3);
 }

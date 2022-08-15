@@ -104,6 +104,23 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
             quad[3].color = sf::Color::Black;
         }
 
+
+        sf::VertexArray dots(sf::Lines, 2);
+
+        dots[0].position = sf::Vector2f(body.edge.point1.get_x(), h -body.edge.point1.get_y());
+        dots[1].position = sf::Vector2f(body.edge.point2.get_x(), h -body.edge.point2.get_y());
+        dots[0].color = sf::Color::Cyan;
+        dots[1].color = sf::Color::Cyan;
+
+        std::vector<sf::CircleShape> circs;
+        for(int i =0; i<body.contacts.size();i++){
+            circs.emplace_back(4);
+            circs[i].setPosition(sf::Vector2f(body.contacts[i].get_x(),(h-body.contacts[i].get_y())));
+            circs[i].setFillColor(sf::Color::Green);
+        }
+
+
+
         Rectangle bound = body.get_shape().get_bounding_box();
         double height = bound.max.get_y() - bound.min.get_y();
         double width = bound.max.get_x() - bound.min.get_x();
@@ -120,6 +137,12 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         quadd[3].color = sf::Color::Cyan;
      //   target.draw(quadd,states);
         target.draw(quad,states);
+        target.draw(dots,states);
+        for(sf::CircleShape circ : circs){
+            target.draw(circ,states);
+        }
+       // body.contacts.clear();
+
 
     }
 

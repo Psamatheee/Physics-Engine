@@ -24,10 +24,26 @@ Vec operator+(const Vec &v1, const Vec &v2) {
 Vec operator*(double num, const Vec &v) {
     return Vec{v.get_x() * num, v.get_y() * num};
 }
+bool operator==(Vec v1, Vec v2){
+    if(v1.x == v2.x && v1.y == v2.y) return true;
+    return false;
+}
+Vec Vec::orthogonalize() {
+    Vec v  =  Vec{y,-x};
+    v.normalize();
+    return v;
+}
 
 //Vector helper functions
 double dotProd(const Vec &v1, const Vec &v2) {
     return v1.get_x() * v2.get_x() + v1.get_y() * v2.get_y();
+}
+double cross(Vec a, Vec b){
+    return a.get_x()*b.get_y() - a.get_y()*b.get_x();
+}
+Vec cross( const Vec& a, double s )
+{
+    return Vec{s * a.get_y(), -s * a.get_x() };
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -430,13 +446,13 @@ double get_collision_normal(OBB& a, OBB& b, Edge& edge){
 
     if(aa < bb && aa < penetration){
         penetration = aa;
-        edge[0] = a_rect[0];
-        edge[1] = a_rect[1];
+        edge[0] = a_rect[3];
+        edge[1] = a_rect[0];
     }
     if(bb < aa && bb < penetration){
         penetration = bb;
-        edge[0] = a_rect[2];
-        edge[1] = a_rect[3];
+        edge[0] = a_rect[1];
+        edge[1] = a_rect[2];
     }
 
     //n2
@@ -447,18 +463,30 @@ double get_collision_normal(OBB& a, OBB& b, Edge& edge){
 
     if(aa < bb && aa < penetration){
         penetration = aa;
-        edge[0] = a_rect[1];
-        edge[1] = a_rect[2];
+        edge[0] = a_rect[0];
+        edge[1] = a_rect[1];
     }
     if(bb < aa && bb < penetration){
         penetration = bb;
-        edge[0] = a_rect[3];
-        edge[1] = a_rect[1];
+        edge[0] = a_rect[2];
+        edge[1] = a_rect[3];
     }
 
     return penetration;
 
+}
 
-
-
+void set_incident_edge(OBB& box, Edge& edge, Vec& normal){
+    Helper_Rect rect = box.get_points();
+    double d = 1;
+    for(int i = 0; i < 4; i++){
+        Vec edge_normal = i != 3? rect[i] - rect[i+1] : rect[i] - rect[0];
+        edge_normal = edge_normal.orthogonalize();
+        double dot = dotProd(edge_normal, normal);
+        if( dot <= d) {
+            d = dot;
+            edge.point1 = rect[i];
+            edge.point2 = i != 3? rect[i+1] : rect[0];
+        }
+    }
 }

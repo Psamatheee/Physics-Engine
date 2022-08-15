@@ -11,12 +11,22 @@
 
 class Body{
 public:
-    Body(Shape& shape, double restitution_const, double m, Vec vect) : shape(shape), rest_const{restitution_const}, mass{m}{
+    Body(Shape& shape, double m, Vec vect) : shape(shape), mass{m}{
         if(mass == 0){
             inv_mass = 0;
+            inertia = 0;
+            inv_inertia = 0;
         }else{
             inv_mass = 1/mass;
+            if(shape.get_type() == Type::OBB){
+                inertia = 1.0/12 * mass * (pow(shape.get_max().get_size() * 2, 2) + pow(shape.get_min().get_size() * 2, 2));
+                inv_inertia = 1/inertia;
+            }else{
+                inertia = 0;
+                inv_inertia = 0;
+            }
         }
+
         velocity.set_x(vect.get_x());
         velocity.set_y(vect.get_y());
         current = shape.get_position();
@@ -28,20 +38,22 @@ public:
         }else{
             gravity = 400;
         }
-        back_up_mass = mass;
-        back_up_grav = gravity;
         impulse.set_x(0);
         impulse.set_y(-mass*gravity);
-        backup_inv = inv_mass;
         torque = 0;
         angular_vel = 0;
         angle = 0;
-        I = 0;
+        edge.point1 = Vec{};
+        edge.point2 = Vec{};
+        rest_const = 0.75;
+
 
 
 
 
     };
+
+    void apply_impulse(Vec impulse, Vec normal_vec);
     //~Body();
 
     //getters
@@ -85,34 +97,31 @@ public:
 
     friend bool operator==(Body a, Body b);
     friend bool operator!=(Body a, Body b);
-double  gravity;
+
+    double  gravity;
     double mass;
-    double back_up_mass;
     Vec impulse;
     double inv_mass;
-    double backup_inv;
-Vec normal = Vec{};
-double dynamic_coeff = 0.021;
+    double dynamic_coeff = 0.021;
     double static_coeff = 0.014;
-double back_up_grav;
-   // OBB orientation;
     double angular_vel;
     double angle;
+    double torque;
+    double inertia;
+    double inv_inertia;
     bool intersecting = false;
+    Edge edge;
+
+    std::vector<Vec> contacts;
+
 private:
     Shape& shape;
     double rest_const;
-    //double mass;
 
     Vec velocity;
     Vec current;
     Vec previous;
     Vec render_pos;
-
-    double torque;
-    double I;
-
-    std::vector<Vec> contact_points;
 
 
 };

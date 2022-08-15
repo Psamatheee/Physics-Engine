@@ -9,16 +9,28 @@
 #include <utility>
 
 
+void Body::apply_impulse(Vec imp, Vec normal) {
+    velocity  = velocity +  inv_mass * imp;
+    double crosss = -cross( normal, imp );
+    angular_vel += inv_inertia * crosss;
+}
+
 void Body::integrate(double dt, double w, double h) {
 //    v += (1/m * F) * dt
-if(impulse.get_size() != 0) {
-    velocity = velocity + inv_mass * impulse;
-}else{
-    Vec v{velocity.get_x() ,velocity.get_y() - dt*gravity };
-    set_velocity(v);
+if(shape.get_type() != Type::OBB) {
+    if (impulse.get_size() != 0) {
+        velocity = velocity + inv_mass * impulse;
+    } else {
+        Vec v{velocity.get_x(), velocity.get_y() - dt * gravity};
+        set_velocity(v);
+    }
+
+
+
 }
-if(I == 0) angular_vel += torque * (0) * dt;
-else angular_vel += torque * (1/I) * dt;
+    Vec v{0, - dt * gravity};
+velocity = velocity + v;
+
 //angle += angular_vel * dt;
 shape.rotate(angular_vel*dt);
 angle = shape.get_orient();
@@ -74,23 +86,23 @@ struct Manifold{
 
 void position_correction(Manifold& m){
 
-    const double slop = 0.05; // usually 0.01 to 0.1
-    const double percent = 0.4; // usually 20% to 80%
-    Body a = m.a;
-    Body b = m.b;
-    if(a.get_shape().get_type() == Type::OBB || b.get_shape().get_type() == Type::OBB) return;
-
-    Vec correction = (std::max(m.penetration - slop, 0.0) / (a.get_inv_mass() + b.get_inv_mass()) * percent) * m.normal;
-    Vec a_pos = a.get_position();
-    Vec a_correct = a.get_inv_mass() * correction;
+    const double slop = 0.01; // usually 0.01 to 0.1
+    const double percent = 0.8; // usually 20% to 80%
+  //  if(m.a.get_shape().get_type() == Type::OBB || m.b.get_shape().get_type() == Type::OBB) return;
+    if(m.penetration != m.penetration){
+        int i =0 ;
+    }
+    Vec correction = (std::max(m.penetration - slop, 0.0) / (m.a.get_inv_mass() + m.b.get_inv_mass()) * percent) * m.normal;
+    Vec a_pos = m.a.get_position();
+    Vec a_correct = m.a.get_inv_mass() * correction;
     Vec new_a = a_pos - a_correct ;
-    a.set_position(new_a);
+    m.a.set_position(new_a);
 
 
-    Vec b_pos = b.get_position();
-    Vec b_correct = b.get_inv_mass() * correction;
+    Vec b_pos = m.b.get_position();
+    Vec b_correct = m.b.get_inv_mass() * correction;
     Vec new_b = b_correct + b_pos;
-    b.set_position(new_b);
+    m.b.set_position(new_b);
 
 
 
@@ -131,13 +143,16 @@ int clip(Vec normal, double dot_prod, Edge& edge){
     //clip 1st point
     if(d1 * d2 < 0){
         if(d1 >= 0){
-            edge[0] = edge[0] + d1/(d1-d2) * (edge[1] - edge[0]);
+            edge[0] = edge[0] - d1/(d1-d2) * (edge[1] - edge[0]);
             count++;
         }
         else if( d2 >= 0){
-            edge[1] = edge[1] - d1/(d1-2) * (edge[0] - edge[1]);
+            edge[1] = edge[0] + d1/(d1-d2) * (edge[1] - edge[0]);
             count++;
         }
+    }
+    if(count >2){
+        int k = 0;
     }
     return count;
 }
@@ -234,15 +249,17 @@ void set_manifold(Body& a, Body& b, Manifold& m){
             flip = true;
         }
 
-       normal = ref[1] - ref[0];
-        normal.set_x(normal.get_y() * -1);
-        normal.set_y(normal.get_x());
+       Vec temp = ref[1] - ref[0];
+        normal.set_x(temp.get_y() * -1);
+        normal.set_y(temp.get_x());
         normal.normalize();
-
+        !flip? set_incident_edge(bb,edgeB,normal) : set_incident_edge(aa,edgeB, normal);
+        inc = !flip? edgeB : edgeA;
 
         m.normal = normal;
         m.penetration = penetration;
-
+        a.edge = edgeA;
+        b.edge = edgeB;
         //clip the sides of the reference face
 
         m.normal = normal;
@@ -255,8 +272,15 @@ void set_manifold(Body& a, Body& b, Manifold& m){
         double left = dotProd(-1 * side_normal, ref[0]);
         double right = dotProd( side_normal, ref[1]);
 
-        if( clip(side_normal, right, inc) > 2) return;
-        if( clip(-1 * side_normal, left, inc) > 2) return;
+        if( clip(side_normal, right, inc) < 2) {
+            m.penetration = 0;
+            return;
+        }
+        if( clip(-1 * side_normal, left, inc) < 2) {
+
+            m.penetration = 0;
+            return;
+        }
 
         if(flip ) normal = -1 * normal;
         //pick only points behind reference edge;
@@ -268,13 +292,18 @@ void set_manifold(Body& a, Body& b, Manifold& m){
            m.contacts.push_back(inc[0]) ;
            m.penetration = distance - point1_dist;
            count++;
+       }else{
+           m.penetration = 0;
        }
         if(point2_dist < distance){
             m.contacts.push_back(inc[1]) ;
-            m.penetration = distance - point2_dist;
+            m.penetration += distance - point2_dist;
             count++;
         }
         m.penetration/=count;
+        if(m.penetration!=m.penetration){
+            m.penetration = 0;
+        }
 
     }
 }
@@ -286,16 +315,36 @@ void set_manifold(Body& a, Body& b, Manifold& m){
 
 void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
 
+    m.penetration = 0;
     set_manifold(a, b, m);
 
 
-    if(a.get_shape().get_type() == Type::OBB || b.get_shape().get_type() == Type::OBB) {
+    double e = std::min(a.get_e(), b.get_e());
 
+
+    if(a.get_shape().get_type() == Type::OBB || b.get_shape().get_type() == Type::OBB) {
+        for(int i = 0; i < m.contacts.size(); i++){
+            Vec ra = m.contacts[i] - a.get_position();
+            Vec rb = m.contacts[i] - b.get_position();
+            Vec relative_vel = b.get_velocity() - cross(rb, -b.angular_vel) - a.get_velocity() + cross(ra, -a.angular_vel);
+            if(dotProd(relative_vel,m.normal) > 0) return; //moving away from each other
+            double inverse_mass = a.inv_mass + b.inv_mass + pow(cross(ra, m.normal) , 2)*a.inv_inertia + pow(cross(rb, m.normal) , 2)*b.inv_inertia;
+            double j = -(1.0+e) * (dotProd(relative_vel,m.normal));
+            j = j/ inverse_mass;
+            j /= m.contacts.size();
+            Vec impulse = j * m.normal;
+            a.apply_impulse(-1 * impulse,ra);
+            b.apply_impulse(impulse,rb);
+            a.contacts.push_back(m.contacts[i]);
+
+
+
+        }
+        return;
     }
 
     double Uab_normal = dotProd(b.get_velocity()-a.get_velocity(), m.normal); // initial relative velocity along the normal
     if(Uab_normal > 0) return; //moving away from each other
-    double e = std::min(a.get_e(), b.get_e());
 
     //Have to do it this way so that will still work for 0 mass objects
     double j = (-1.0 * (1+e) * Uab_normal) / (a.get_inv_mass() + b.get_inv_mass());

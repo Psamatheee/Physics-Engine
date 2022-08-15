@@ -13,7 +13,7 @@ int main() {
     double w = window.getSize().x;
 
     OBB obbe{Vec{0,100},Vec{100,0}, Vec{1000,500}};
-    Body oriented{obbe, 0.75,4,Vec{0,0}};
+    Body oriented{obbe,0,Vec{0,0}};
 
     std::vector<Body> bodes;
     std::vector<Circle> shapes;
@@ -23,7 +23,7 @@ int main() {
    int countt = 0;
     oriented.gravity = 0;
 oriented.impulse = Vec{0,0};
-oriented.angular_vel = 10;
+oriented.angular_vel = 0;
    state.add_body(&oriented);
     std::vector<AABB> boxes;
     std::vector<OBB> orients;
@@ -72,10 +72,10 @@ oriented.angular_vel = 10;
         }
 
 
-        if(x != 0 && y !=0 && !added  ){
+        if(x != 0 && y !=0 && !added  && false){
 
           auto* circ_testee = new Circle{(double) (std::rand() % 100 + 10), Vec{x,y}};
-          Body* testee = new Body{*circ_testee, 0.75, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
+          Body* testee = new Body{*circ_testee, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
             countt++;
            testee->set_velocity(0,0);
           //  testee->gravity = 500;
@@ -93,13 +93,14 @@ oriented.angular_vel = 10;
             auto* aabb_test = new AABB{Vec{xx-rand_width/2, yy-rand_height/2}, Vec{xx + rand_width/2,yy + rand_height/2}};
            // Body* testee = new Body{*aabb_test, 0.75, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
            auto* obb = new OBB{Vec{0,50},Vec{50,0},Vec{xx,yy}};
-           Body* testee = new Body{*obb, 0.75, 3, Vec{} };
-           testee->get_shape().rotate(39);
-            testee->set_velocity(0,-70);
-            testee->mass =( testee->get_shape().get_y() - testee->get_shape().get_min().get_y()) * ( testee->get_shape().get_x() - testee->get_shape().get_min().get_x()) /1000;
-            testee->gravity = 0;
-            testee->impulse = Vec{0,0};
-            testee->angular_vel = 50;
+           Body* testee = new Body{*obb, 3, Vec{} };
+           testee->get_shape().rotate(10);
+           //testee->set_velocity(0,-70);
+          //  testee->mass =( testee->get_shape().get_y() - testee->get_shape().get_min().get_y()) * ( testee->get_shape().get_x() - testee->get_shape().get_min().get_x()) /1000;
+          testee->mass = 0.8;
+          //  testee->gravity = 0;
+          //  testee->impulse = Vec{0,0};
+            testee->angular_vel = 0;
             state.add_body(testee);
 
 
