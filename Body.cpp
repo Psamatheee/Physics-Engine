@@ -17,33 +17,33 @@ void Body::apply_impulse(Vec imp, Vec normal) {
 
 void Body::integrate(double dt, double w, double h) {
 //    v += (1/m * F) * dt
-if(shape.get_type() != Type::OBB) {
-    if (impulse.get_size() != 0) {
-        velocity = velocity + inv_mass * impulse;
-    } else {
-        Vec v{velocity.get_x(), velocity.get_y() - dt * gravity};
-        set_velocity(v);
-    }
 
 
 
-}
-    Vec v{0, - dt * gravity};
-velocity = velocity + v;
+
+
+
+
 
 //angle += angular_vel * dt;
-shape.rotate(angular_vel*dt);
-angle = shape.get_orient();
+
    // set_velocity(ee);
 
 
 
     Vec dr{dt * velocity.get_x(), dt * velocity.get_y()};
 
+
     double new_x = get_position().get_x() + dr.get_x();
     double new_y = get_position().get_y() + dr.get_y();
     set_position(new_x , new_y);
+    shape.rotate(angular_vel*dt);
+    angle = shape.get_orient();
+
+
     double ek = 0.5 * mass * velocity.get_size()*velocity.get_size();
+    Vec v{velocity.get_x(), velocity.get_y() - dt * gravity*1/2};
+    set_velocity(v);
 
 
 
@@ -87,7 +87,7 @@ struct Manifold{
 void position_correction(Manifold& m){
 
     const double slop = 0.01; // usually 0.01 to 0.1
-    const double percent = 0.8; // usually 20% to 80%
+    const double percent = 0.2; // usually 20% to 80%
   //  if(m.a.get_shape().get_type() == Type::OBB || m.b.get_shape().get_type() == Type::OBB) return;
     if(m.penetration != m.penetration){
         int i =0 ;
@@ -143,7 +143,7 @@ int clip(Vec normal, double dot_prod, Edge& edge){
     //clip 1st point
     if(d1 * d2 < 0){
         if(d1 >= 0){
-            edge[0] = edge[0] - d1/(d1-d2) * (edge[1] - edge[0]);
+            edge[0] = edge[0] + d1/(d1-d2) * (edge[1] - edge[0]);
             count++;
         }
         else if( d2 >= 0){
@@ -253,7 +253,7 @@ void set_manifold(Body& a, Body& b, Manifold& m){
         normal.set_x(temp.get_y() * -1);
         normal.set_y(temp.get_x());
         normal.normalize();
-        !flip? set_incident_edge(bb,edgeB,normal) : set_incident_edge(aa,edgeB, normal);
+        !flip? set_incident_edge(bb,edgeB,normal) : set_incident_edge(aa,edgeA, normal);
         inc = !flip? edgeB : edgeA;
 
         m.normal = normal;
@@ -268,9 +268,15 @@ void set_manifold(Body& a, Body& b, Manifold& m){
         //clip the sides of the reference face
        Vec side_normal = ref[1] - ref[0];
         side_normal.normalize();
-
-        double left = dotProd(-1 * side_normal, ref[0]);
-        double right = dotProd( side_normal, ref[1]);
+        Vec l = ref[0];
+        Vec r = ref[1];
+        if(ref[0].get_x() > ref[1].get_x()){
+            l = ref[1];
+            r = ref[0];
+            side_normal = -1*side_normal;
+        }
+        double left = dotProd(-1 * side_normal, l);
+        double right = dotProd( side_normal, r);
 
         if( clip(side_normal, right, inc) < 2) {
             m.penetration = 0;
@@ -283,6 +289,7 @@ void set_manifold(Body& a, Body& b, Manifold& m){
         }
 
         if(flip ) normal = -1 * normal;
+        m.normal = normal;
         //pick only points behind reference edge;
        double distance = dotProd(normal, ref[0]);
        double point1_dist = dotProd(inc[0],normal);
@@ -301,9 +308,6 @@ void set_manifold(Body& a, Body& b, Manifold& m){
             count++;
         }
         m.penetration/=count;
-        if(m.penetration!=m.penetration){
-            m.penetration = 0;
-        }
 
     }
 }
@@ -313,9 +317,11 @@ void set_manifold(Body& a, Body& b, Manifold& m){
 
 
 
-void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
+void set_new_speeds( Manifold& m, double dt ){
 
-    m.penetration = 0;
+   // m.penetration = 0;
+    Body& a  = m.a;
+    Body& b  = m.b;
     set_manifold(a, b, m);
 
 
@@ -326,7 +332,7 @@ void set_new_speeds(Body& a, Body& b, Manifold& m, double dt ){
         for(int i = 0; i < m.contacts.size(); i++){
             Vec ra = m.contacts[i] - a.get_position();
             Vec rb = m.contacts[i] - b.get_position();
-            Vec relative_vel = b.get_velocity() - cross(rb, -b.angular_vel) - a.get_velocity() + cross(ra, -a.angular_vel);
+            Vec relative_vel = b.get_velocity() + cross(rb, b.angular_vel) - a.get_velocity() -  cross(ra, a.angular_vel);
             if(dotProd(relative_vel,m.normal) > 0) return; //moving away from each other
             double inverse_mass = a.inv_mass + b.inv_mass + pow(cross(ra, m.normal) , 2)*a.inv_inertia + pow(cross(rb, m.normal) , 2)*b.inv_inertia;
             double j = -(1.0+e) * (dotProd(relative_vel,m.normal));

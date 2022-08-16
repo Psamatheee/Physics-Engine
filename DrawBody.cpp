@@ -136,8 +136,9 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         quadd[2].color = sf::Color::Cyan;
         quadd[3].color = sf::Color::Cyan;
      //   target.draw(quadd,states);
-        target.draw(quad,states);
         target.draw(dots,states);
+        target.draw(quad,states);
+
         for(sf::CircleShape circ : circs){
             target.draw(circ,states);
         }

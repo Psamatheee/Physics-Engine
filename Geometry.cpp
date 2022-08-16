@@ -310,8 +310,8 @@ bool OBB::intersects(Shape &shape) {
         double angle = -orient;
         Vec og_pos = shape.get_position();
         double conv = M_PI / 180;
-        double cos = std::cos((angle * conv));
-        double sin = std::sin(angle * conv);
+        double cos = std::cos((angle ));
+        double sin = std::sin(angle );
         Matrix m{cos, sin, -sin, cos};
         Vec model_pos = m * og_pos;
         Circle circ{shape.get_radius(), model_pos};
@@ -330,8 +330,8 @@ bool OBB::intersects(Shape &shape) {
 
         double conv = M_PI / 180;
         double angle = -orient;
-        double cos = std::cos((angle * conv));
-        double sin = std::sin(angle * conv);
+        double cos = std::cos((angle));
+        double sin = std::sin(angle );
         Matrix m{cos, sin, -sin, cos};
         Helper_Rect rect = model_this.get_points();
         Vec model_max = rect[0];
@@ -348,28 +348,28 @@ bool OBB::intersects(Shape &shape) {
 
 void OBB::rotate(double angle) {
     double conv = M_PI / 180;
-    double cos = std::cos((angle * conv));
-    double sin = std::sin(angle * conv);
+    double cos = std::cos((angle ));
+    double sin = std::sin(angle );
     Matrix m{cos, sin, -sin, cos};
     half_height = m * half_height;
     half_width = m * half_width;
     orient += angle;
-    if (orient > 360) orient = orient - 360;
-    if (orient < 0) orient = 360 + orient;
+    if (orient > 2 * M_PI) orient = orient - 2*M_PI;
+    if (orient < 0) orient = 2*M_PI + orient;
     get_points();
 }
 
 void OBB::rotate_origin(double angle) {
     double conv = M_PI / 180;
-    double cos = std::cos((angle * conv));
-    double sin = std::sin(angle * conv);
+    double cos = std::cos((angle ));
+    double sin = std::sin(angle );
     Matrix m{cos, sin, -sin, cos};
     position = (m * position);
     half_height = m * half_height;
     half_width = m * half_width;
     orient += angle;
-    if (orient > 360) orient = orient - 360;
-    if (orient < 0) orient = 360 + orient;
+    if (orient > 2 * M_PI) orient = orient - 2*M_PI;
+    if (orient < 0) orient = 2* M_PI + orient;
     get_points();
 }
 
