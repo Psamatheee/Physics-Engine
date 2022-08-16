@@ -86,7 +86,7 @@ struct Manifold{
 
 void position_correction(Manifold& m){
 
-    const double slop = 0.01; // usually 0.01 to 0.1
+    const double slop = 0.05; // usually 0.01 to 0.1
     const double percent = 0.2; // usually 20% to 80%
   //  if(m.a.get_shape().get_type() == Type::OBB || m.b.get_shape().get_type() == Type::OBB) return;
     if(m.penetration != m.penetration){
@@ -234,7 +234,7 @@ void set_manifold(Body& a, Body& b, Manifold& m){
         double penetration_b = get_collision_normal(bb,aa,edgeB);
 
         bool flip;
-        if(penetration_a < penetration_b){
+        if(penetration_a <= penetration_b){
             //a has the reference face
             penetration = penetration_a;
             ref = edgeA;
@@ -288,7 +288,6 @@ void set_manifold(Body& a, Body& b, Manifold& m){
             return;
         }
 
-        if(flip ) normal = -1 * normal;
         m.normal = normal;
         //pick only points behind reference edge;
        double distance = dotProd(normal, ref[0]);
@@ -307,8 +306,13 @@ void set_manifold(Body& a, Body& b, Manifold& m){
             m.penetration += distance - point2_dist;
             count++;
         }
-        m.penetration/=count;
+        if(count) {
 
+            m.penetration /= count;
+        }
+
+        if(flip ) normal = -1 * normal;
+        m.normal = normal;
     }
 }
 
@@ -342,6 +346,9 @@ void set_new_speeds( Manifold& m, double dt ){
             a.apply_impulse(-1 * impulse,ra);
             b.apply_impulse(impulse,rb);
             a.contacts.push_back(m.contacts[i]);
+
+
+
 
 
 

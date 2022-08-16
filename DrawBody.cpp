@@ -92,7 +92,7 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         quad[1].position = sf::Vector2f( rect[1].get_x(), h-rect[1].get_y());
         quad[2].position = sf::Vector2f( rect[2].get_x(), h-rect[2].get_y());
         quad[3].position = sf::Vector2f( rect[3].get_x(), h-rect[3].get_y());
-        if(body.intersecting) {
+        if(body.intersecting && false) {
             quad[0].color = sf::Color::Red;
             quad[1].color = sf::Color::Red;
             quad[2].color = sf::Color::Red;
@@ -136,12 +136,12 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         quadd[2].color = sf::Color::Cyan;
         quadd[3].color = sf::Color::Cyan;
      //   target.draw(quadd,states);
-        target.draw(dots,states);
+       // target.draw(dots,states);
         target.draw(quad,states);
 
-        for(sf::CircleShape circ : circs){
+        /*for(sf::CircleShape circ : circs){
             target.draw(circ,states);
-        }
+        }*/
        // body.contacts.clear();
 
 
