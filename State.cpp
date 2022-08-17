@@ -13,7 +13,7 @@ void State::add_body(Body* body){
     bodies.push_back(body);
 }
 
-void State::update_physics(double dt){
+void State::update_physics(double dt, int count){
 
     for(Body* body : bodies){
         body->intersecting = false;

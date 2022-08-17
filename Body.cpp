@@ -349,6 +349,33 @@ void set_new_speeds( Manifold& m, double dt ){
 
 
 
+            Vec tangent = Vec{m.normal.get_y()*-1, m.normal.get_x()};
+            if(dotProd(b.get_velocity(),tangent) > 0) {
+                tangent = -1*tangent;
+            }
+            tangent.normalize();
+            relative_vel = b.get_velocity() + cross(rb, b.angular_vel) - a.get_velocity() -  cross(ra, a.angular_vel);
+            inverse_mass = a.inv_mass + b.inv_mass + pow(cross(ra, tangent) , 2)*a.inv_inertia + pow(cross(rb, tangent) , 2)*b.inv_inertia;
+            double jtt = dotProd(relative_vel, tangent);
+            double jt = jtt / inverse_mass;
+
+            if(std::abs(jt) < 0.0001f ) return;
+            double static_coefficient  = std::sqrt(a.static_coeff*b.static_coeff);
+            double dynamic_coefficient  = std::sqrt(a.dynamic_coeff*b.dynamic_coeff);
+            Vec friction_force;
+            if(std::abs(jt) < impulse.get_size() *  static_coefficient){
+                friction_force = std::abs(jt) * tangent;
+            }else{
+                friction_force = impulse.get_size() * dynamic_coefficient * tangent;
+            }
+
+
+            b.apply_impulse(friction_force,rb);
+            a.apply_impulse(-1 * friction_force,ra);
+
+
+
+
 
 
 

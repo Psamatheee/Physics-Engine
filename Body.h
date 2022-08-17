@@ -47,6 +47,11 @@ public:
         edge.point2 = Vec{};
         rest_const = 0.75;
 
+        sleep = false;
+
+        start_pos = shape.get_position();
+        end_pos = shape.get_position();
+
 
 
 
@@ -111,6 +116,9 @@ public:
     double inv_inertia;
     bool intersecting = false;
     Edge edge;
+    bool sleep;
+    Vec start_pos;
+    Vec end_pos;
 
     std::vector<Vec> contacts;
 
