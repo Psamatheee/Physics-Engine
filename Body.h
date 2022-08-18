@@ -21,9 +21,13 @@ public:
             if(shape.get_type() == Type::OBB){
                 inertia = 1.0/12 * mass * (pow(shape.get_max().get_size() * 2, 2) + pow(shape.get_min().get_size() * 2, 2));
                 inv_inertia = 1/inertia;
+            }if(shape.get_type() == Type::Circle){
+                inertia = 1.0/2 * mass * shape.get_radius()*shape.get_radius();
+                inv_inertia = 1/inertia;
             }else{
-                inertia = 0;
+
                 inv_inertia = 0;
+                inertia = 0;
             }
         }
 

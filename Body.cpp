@@ -46,6 +46,7 @@ void Body::integrate(double dt, double w, double h) {
     set_velocity(v);
 
 
+    end_pos = get_position();
 
 
 
@@ -86,8 +87,8 @@ struct Manifold{
 
 void position_correction(Manifold& m){
 
-    const double slop = 0.05; // usually 0.01 to 0.1
-    const double percent = 0.2; // usually 20% to 80%
+    const double slop = 0.07; // usually 0.01 to 0.1
+    const double percent = 0.4; // usually 20% to 80%
   //  if(m.a.get_shape().get_type() == Type::OBB || m.b.get_shape().get_type() == Type::OBB) return;
     if(m.penetration != m.penetration){
         int i =0 ;
@@ -110,9 +111,9 @@ void position_correction(Manifold& m){
 }
 
 // a is the rectangle
-void calculate_manifold_AABBvsCircle(Body& a, Body& b, Manifold& m){
-    Rectangle aa{a.get_shape().get_min(), a.get_shape().get_max()};
-    Circle bb{b.get_shape().get_radius(), b.get_shape().get_position()};
+void calculate_manifold_AABBvsCircle(AABB& a, Circle& b, Manifold& m){
+    Rectangle aa{a.get_min(), a.get_max()};
+    Circle bb{b.get_radius(), b.get_position()};
     Vec closest = get_closest_point(aa,bb);
     double distance_sqr = pow(closest.get_x() - bb.get_x(), 2) +
                           pow(closest.get_y() - bb.get_y(), 2);
@@ -122,14 +123,15 @@ void calculate_manifold_AABBvsCircle(Body& a, Body& b, Manifold& m){
     Vec b_pos = b.get_position();
     Vec a_pos = closest;
     Vec centreLine = b_pos - a_pos;
-    if(bb.get_centre().get_x() < aa.max.get_x() && bb.get_centre().get_x() >aa.min.get_x() && bb.get_centre().get_y() > aa.min.get_y() && bb.get_centre().get_y() < aa.max.get_y()){
-       b.set_position(closest);
-       centreLine = Vec{centreLine.get_x()*-1, centreLine.get_y()*-1};
-
-    }
+   // if(bb.get_centre().get_x() < aa.max.get_x() && bb.get_centre().get_x() >aa.min.get_x() && bb.get_centre().get_y() > aa.min.get_y() && bb.get_centre().get_y() < aa.max.get_y()){
+     //  b.set_position(closest);
+     //  centreLine = Vec{centreLine.get_x()*-1, centreLine.get_y()*-1};
+//
+  //  }
 
     centreLine.normalize();
     m.normal = Vec{centreLine.get_x(), centreLine.get_y()};
+    m.contacts.push_back(closest);
 }
 
 int clip(Vec normal, double dot_prod, Edge& edge){
@@ -165,14 +167,46 @@ void set_manifold(Body& a, Body& b, Manifold& m){
         normal.normalize();
         m.normal = normal;
         m.penetration = get_depth(a.get_shape(),b.get_shape());
+        double alpha = std::abs(dotProd(b.get_position(), m.normal) - dotProd(a.get_position(), m.normal )) - b.get_shape().get_radius();
+        double x = a.get_shape().get_radius() - alpha;
+        Vec contact =  a.get_position()  + x/2  * m.normal;
+        m.contacts.push_back(contact);
     }
     if(a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::Circle){
-        calculate_manifold_AABBvsCircle(a,b,m);
+      //  calculate_manifold_AABBvsCircle(a,b,m);
     }
     if(b.get_shape().get_type() == Type::AABB && a.get_shape().get_type() == Type::Circle){
-        calculate_manifold_AABBvsCircle(b,a,m);
+     //   calculate_manifold_AABBvsCircle(b,a,m);
         m.normal = -1.0 * m.normal ;
     }
+
+    if(a.get_shape().get_type() == Type::OBB && b.get_shape().get_type() == Type::Circle){
+        double angle = -a.get_shape().get_orient();
+        Vec og_pos = b.get_shape().get_position();
+        double conv = M_PI / 180;
+        double cos = std::cos((angle ));
+        double sin = std::sin(angle );
+        Matrix matrix{cos, sin, -sin, cos};
+        Vec model_pos = matrix * og_pos;
+        Circle circ{b.get_shape().get_radius(), model_pos};
+        Helper_Rect rect = a.get_shape().get_points();
+        AABB model_rect{matrix * rect.point3, matrix * rect.point1};
+        calculate_manifold_AABBvsCircle(model_rect, circ, m);
+        Vec contact = m.contacts[0];
+        cos = std::cos((-angle ));
+         sin = std::sin(-angle );
+        Matrix matrix2{cos, sin, -sin, cos};
+        contact = matrix2 * contact;
+        m.contacts[0] = contact;
+        m.normal = matrix2 * m.normal;
+        return;
+    }
+
+    if(b.get_shape().get_type() == Type::OBB && a.get_shape().get_type() == Type::Circle ){
+        set_manifold(b,a,m);
+        m.normal = -1 * m.normal;
+    }
+
     if(a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::AABB){
         Rectangle aa{a.get_shape().get_min(),a.get_shape().get_max()};
         Rectangle bb{b.get_shape().get_min(),b.get_shape().get_max()};
@@ -216,6 +250,7 @@ void set_manifold(Body& a, Body& b, Manifold& m){
             }
         }
     }
+
     if(a.get_shape().get_type() == Type::OBB && b.get_shape().get_type() == Type::OBB ){
 
         double penetration;
@@ -332,7 +367,9 @@ void set_new_speeds( Manifold& m, double dt ){
     double e = std::min(a.get_e(), b.get_e());
 
 
-    if(a.get_shape().get_type() == Type::OBB || b.get_shape().get_type() == Type::OBB) {
+
+        if(a.sleep) a.sleep = false;
+        if(b.sleep) b.sleep = false;
         for(int i = 0; i < m.contacts.size(); i++){
             Vec ra = m.contacts[i] - a.get_position();
             Vec rb = m.contacts[i] - b.get_position();
@@ -381,37 +418,7 @@ void set_new_speeds( Manifold& m, double dt ){
 
         }
         return;
-    }
 
-    double Uab_normal = dotProd(b.get_velocity()-a.get_velocity(), m.normal); // initial relative velocity along the normal
-    if(Uab_normal > 0) return; //moving away from each other
-
-    //Have to do it this way so that will still work for 0 mass objects
-    double j = (-1.0 * (1+e) * Uab_normal) / (a.get_inv_mass() + b.get_inv_mass());
-    Vec impulse = j * m.normal;
-    a.impulse = a.impulse - impulse;
-    b.impulse = b.impulse + impulse;
-
-    Vec tangent = Vec{m.normal.get_y()*-1, m.normal.get_x()};
-    if(dotProd(b.get_velocity(),tangent) > 0) {
-        tangent = -1*tangent;
-    }
-    tangent.normalize();
-    Vec new_relative = b.get_velocity() - a.get_velocity();
-    double jtt = dotProd(new_relative , tangent);
-    double jt = jtt / (a.get_inv_mass() + b.get_inv_mass());
-
-    double static_coefficient  = std::sqrt(a.static_coeff*a.static_coeff + b.static_coeff*b.static_coeff);
-    double dynamic_coefficient  = std::sqrt(a.dynamic_coeff*a.dynamic_coeff + b.dynamic_coeff*b.dynamic_coeff);
-    Vec friction_force;
-    if(std::abs(jt) < impulse.get_size() *  static_coefficient){
-        friction_force = std::abs(jt) * tangent;
-    }else{
-        friction_force = impulse.get_size() * dynamic_coefficient * tangent;
-    }
-
-a.impulse = a.impulse - friction_force;
-    b.impulse = b.impulse + friction_force;
 
 
 
@@ -439,7 +446,7 @@ public:
             while (j < bodies.size()){
                     b.min = bodies[j]->get_shape().get_bounding_box().min  ;
                 b.max = bodies[j]->get_shape().get_bounding_box().max  ;
-                if(does_rect_intersect(a,b)){
+                if(does_rect_intersect(a,b) && !(bodies[i]->sleep && bodies[j]->sleep) ){
                         Body* ap = bodies[i];
                         Body* bp = bodies[j];
                         pairs.push_back(Pair{ap,bp});

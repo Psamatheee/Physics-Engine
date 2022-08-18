@@ -13,7 +13,7 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         line.setOrigin(0,1);
 
         line.rotate(-90);
-        line.rotate(body.angle);
+        line.rotate(180/M_PI  * body.angle);
         line.setFillColor(sf::Color::Black);
         line.setPosition(body.get_position().get_x(), h-body.get_position().get_y());
         std::cout<<h<<"\n";
@@ -22,7 +22,7 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         circ.setOutlineThickness(-2.f);
         circ.setOutlineColor(sf::Color::Black);
       //  std::cout<<"Render: " <<body.get_render().get_x() << " " << body.get_render().get_y() <<"\n";
-      if(body.intersecting) circ.setFillColor(sf::Color::Red);
+   //   if(body.intersecting) circ.setFillColor(sf::Color::Red);
         target.draw(circ,states);
         target.draw(line,states);
     }
@@ -44,7 +44,7 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         if(body.intersecting) rectangle.setFillColor(sf::Color::Red);
         rectangle.setOutlineThickness(-3.f);
         rectangle.setOutlineColor(sf::Color::Black);
-        if(body.intersecting) {
+        if(body.intersecting && false) {
             quad[0].color = sf::Color::Red;
             quad[1].color = sf::Color::Red;
             quad[2].color = sf::Color::Red;
@@ -92,7 +92,7 @@ void DrawBody::draw(sf::RenderTarget &target, sf::RenderStates states) const {
         quad[1].position = sf::Vector2f( rect[1].get_x(), h-rect[1].get_y());
         quad[2].position = sf::Vector2f( rect[2].get_x(), h-rect[2].get_y());
         quad[3].position = sf::Vector2f( rect[3].get_x(), h-rect[3].get_y());
-        if(body.intersecting && false) {
+        if(body.intersecting && false ) {
             quad[0].color = sf::Color::Red;
             quad[1].color = sf::Color::Red;
             quad[2].color = sf::Color::Red;

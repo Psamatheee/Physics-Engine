@@ -13,12 +13,16 @@ void State::add_body(Body* body){
     bodies.push_back(body);
 }
 
-void State::update_physics(double dt, int count){
+void State::update_physics(double dt, int& count){
 
     for(Body* body : bodies){
         body->intersecting = false;
         body->contacts.clear();
-
+        if(count == 1) body->start_pos = body->get_position();
+        if(count == max_count){
+            Vec displacement = body->end_pos - body->start_pos;
+           // if(std::abs(displacement.get_size()) < 2 ) body->sleep = true;
+        }
 
     }
     if(bodies.size() > 1) phase.generate_pairs();
@@ -53,7 +57,7 @@ void State::update_physics(double dt, int count){
     }
 
     for(Body* body : bodies){
-        body->integrate(dt,w,h);
+       if(!body->sleep) body->integrate(dt,w,h);
        // body->normal = Vec{0,0};
         //body->intersecting = false;
         //   body->set_current(body->get_position());

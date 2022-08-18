@@ -39,6 +39,7 @@ class Vec{
         double x;
         double y;
         double size;
+        double orient;
 };
 
 struct Edge{
@@ -181,7 +182,7 @@ public:
 
 class Circle : public Shape{
 public:
-    Circle(double r, Vec c) : radius{r}, centre{c}{}
+    Circle(double r, Vec c) : radius{r}, centre{c}{orient = 0;}
     Circle() : radius{50}, centre(100,100){}
 
     //getters
@@ -191,14 +192,19 @@ public:
     double get_x() override{return centre.get_x();}
     double get_y() override{return centre.get_y();}
     Type get_type() override{return Type::Circle;}
-    double get_orient() override {return 0;}
+    double get_orient() override {return orient;}
     //setters
     void set_position(double xx, double yy) override{
         centre.set_x(xx);
         centre.set_y(yy);
     }
+    void set_orient(double angle ){orient = angle;}
 
-    void rotate(double angle) override{}
+    void rotate(double angle) override{
+        orient += angle;
+        if (orient > 2 * M_PI) orient = orient - 2*M_PI;
+        if (orient < 0) orient = 2*M_PI + orient;
+    };
     Rectangle get_bounding_box() override;
     bool intersects(Shape& shape) override;
 
@@ -210,6 +216,7 @@ public:
 private:
     const double radius;
     Vec centre; //position vector to the centre of the circle
+    double orient;
 };
 
 class AABB : public Shape{

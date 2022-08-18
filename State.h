@@ -17,10 +17,11 @@ public:
     double get_h() const{return h;}
 
     void add_body(Body* body);
-    void update_physics(double dt);
+    void update_physics(double dt, int& count);
     void set_render_pos(double a);
     void reset();
 
+    int max_count = 100;
 
 private:
     double w;

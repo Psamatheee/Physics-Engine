@@ -40,6 +40,7 @@ oriented.angular_vel = 0;
     double dt = 1 / fps;
     sf::Clock clock;
     double accum = 0;
+    int count = 0;
     while (window.isOpen()) {
 
         sf::Event event;
@@ -72,7 +73,7 @@ oriented.angular_vel = 0;
         }
 
 
-        if(x != 0 && y !=0 && !added  && false){
+        if(x != 0 && y !=0 && !added  ){
 
           auto* circ_testee = new Circle{(double) (std::rand() % 100 + 10), Vec{x,y}};
           Body* testee = new Body{*circ_testee, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
@@ -80,6 +81,7 @@ oriented.angular_vel = 0;
            testee->set_velocity(0,0);
           //  testee->gravity = 500;
            // testee->impulse = Vec{0,0};
+            testee->angular_vel = 0;
           state.add_body(testee);
           added = true;
 
@@ -123,7 +125,8 @@ oriented.angular_vel = 0;
         }
 
         while (accum > dt) {
-            state.update_physics(dt);
+            count++;
+            state.update_physics(dt, count);
 
             accum -= dt;
 
@@ -139,6 +142,8 @@ oriented.angular_vel = 0;
         if(sf::Keyboard::isKeyPressed(sf::Keyboard::X)){
             state.reset();
         }
+
+        if (count >= state.max_count) count = 0;
 
 
 
