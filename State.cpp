@@ -21,13 +21,23 @@ void State::update_physics(double dt, int& count){
         if(count == 1) body->start_pos = body->get_position();
         if(count == max_count){
             Vec displacement = body->end_pos - body->start_pos;
-           // if(std::abs(displacement.get_size()) < 2 ) body->sleep = true;
+           if(std::abs(displacement.get_size()) < 2 ) {body->sleep = true;
+           body->set_velocity(0,0);
+           body->angular_vel = 0;
+           }
         }
 
     }
+    for(Body* body : bodies){
+        if(!body->sleep) {
+            Vec v{0, -dt * body->gravity * 1 / 2};
+            body->set_velocity(body->get_velocity() + v);
+        }
+    }
     if(bodies.size() > 1) phase.generate_pairs();
     std::vector<Pair> pairs  = phase.get_pairs();
-    std::vector<Manifold> ms;
+    std::vector<Manifold*> ms;
+
     for(Pair pair : pairs){
         if(pair.a->get_shape().intersects(pair.b->get_shape()) || pair.b->get_shape().intersects(pair.a->get_shape())) {
             Body &aa = *pair.a;
@@ -38,22 +48,21 @@ void State::update_physics(double dt, int& count){
             double e = std::min(aa.get_e(), bb.get_e());
             Vec collision_normal = bb.get_position() - aa.get_position();;
             collision_normal.normalize();
-            Manifold m = Manifold{aa, bb, 0, collision_normal};
+            auto* m = new Manifold{aa, bb, 0, collision_normal};
           //  if(pair.a->mass != 0 || pair.b->mass != 0) position_correction( m);
 
             ms.push_back(m);
+            if(!(aa.sleep && bb.sleep))set_new_speeds(*m, dt);
         }
 
 
 
     }
-    for(Body* body : bodies){
-        Vec v{0, - dt * body->gravity * 1/2};
-        body->set_velocity(body->get_velocity() + v);
-    }
-    for(Manifold& m : ms){
 
-        set_new_speeds(m,dt);
+
+    for(Manifold* m : ms){
+
+       // set_new_speeds(m,dt);
     }
 
     for(Body* body : bodies){
@@ -66,8 +75,8 @@ void State::update_physics(double dt, int& count){
 
 
     }
-    for(Manifold& m : ms){
-        position_correction(m);
+    for(Manifold* m : ms){
+        position_correction(*m);
     }
     for(Body* body : bodies){
         //  body->integrate(dt,w,h);
@@ -85,6 +94,10 @@ void State::update_physics(double dt, int& count){
                                   return (i->get_position().get_y() < -500 || i->get_position().get_x() < -500 || i->get_position().get_x() > width + 500 ) ;    // remove odd numbers
                               });
     bodies.erase(end, bodies.end());
+
+    for(Manifold* m : ms){
+        delete m;
+    }
 
 
 

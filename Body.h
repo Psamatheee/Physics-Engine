@@ -21,7 +21,7 @@ public:
             if(shape.get_type() == Type::OBB){
                 inertia = 1.0/12 * mass * (pow(shape.get_max().get_size() * 2, 2) + pow(shape.get_min().get_size() * 2, 2));
                 inv_inertia = 1/inertia;
-            }if(shape.get_type() == Type::Circle){
+            }else if(shape.get_type() == Type::Circle){
                 inertia = 1.0/2 * mass * shape.get_radius()*shape.get_radius();
                 inv_inertia = 1/inertia;
             }else{
@@ -111,8 +111,8 @@ public:
     double mass;
     Vec impulse;
     double inv_mass;
-    double dynamic_coeff = 0.021;
-    double static_coeff = 0.014;
+    double dynamic_coeff = 0.21;
+    double static_coeff = 0.14;
     double angular_vel;
     double angle;
     double torque;

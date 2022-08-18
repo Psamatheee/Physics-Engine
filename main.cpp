@@ -12,7 +12,7 @@ int main() {
     double h = window.getSize().y;
     double w = window.getSize().x;
 
-    OBB obbe{Vec{0,100},Vec{100,0}, Vec{1000,500}};
+    OBB obbe{Vec{0,50},Vec{500,0}, Vec{w/2,h/4}};
     Body oriented{obbe,0,Vec{0,0}};
 
     std::vector<Body> bodes;

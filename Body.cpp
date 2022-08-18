@@ -87,7 +87,7 @@ struct Manifold{
 
 void position_correction(Manifold& m){
 
-    const double slop = 0.07; // usually 0.01 to 0.1
+    const double slop = 0.05; // usually 0.01 to 0.1
     const double percent = 0.4; // usually 20% to 80%
   //  if(m.a.get_shape().get_type() == Type::OBB || m.b.get_shape().get_type() == Type::OBB) return;
     if(m.penetration != m.penetration){
@@ -123,11 +123,11 @@ void calculate_manifold_AABBvsCircle(AABB& a, Circle& b, Manifold& m){
     Vec b_pos = b.get_position();
     Vec a_pos = closest;
     Vec centreLine = b_pos - a_pos;
-   // if(bb.get_centre().get_x() < aa.max.get_x() && bb.get_centre().get_x() >aa.min.get_x() && bb.get_centre().get_y() > aa.min.get_y() && bb.get_centre().get_y() < aa.max.get_y()){
-     //  b.set_position(closest);
-     //  centreLine = Vec{centreLine.get_x()*-1, centreLine.get_y()*-1};
+    if(bb.get_centre().get_x() < aa.max.get_x() && bb.get_centre().get_x() >aa.min.get_x() && bb.get_centre().get_y() > aa.min.get_y() && bb.get_centre().get_y() < aa.max.get_y()){
+       b.set_position(closest.get_x(), closest.get_y());
+      centreLine = Vec{centreLine.get_x()*-1, centreLine.get_y()*-1};
 //
-  //  }
+   }
 
     centreLine.normalize();
     m.normal = Vec{centreLine.get_x(), centreLine.get_y()};
@@ -379,6 +379,7 @@ void set_new_speeds( Manifold& m, double dt ){
             double j = -(1.0+e) * (dotProd(relative_vel,m.normal));
             j = j/ inverse_mass;
             j /= m.contacts.size();
+          //  if(std::abs(j) < 0.00001f ) return;
             Vec impulse = j * m.normal;
             a.apply_impulse(-1 * impulse,ra);
             b.apply_impulse(impulse,rb);
@@ -387,7 +388,7 @@ void set_new_speeds( Manifold& m, double dt ){
 
 
             Vec tangent = Vec{m.normal.get_y()*-1, m.normal.get_x()};
-            if(dotProd(b.get_velocity(),tangent) > 0) {
+            if(dotProd(b.get_velocity() + cross(rb, b.angular_vel),tangent) > 0) {
                 tangent = -1*tangent;
             }
             tangent.normalize();
