@@ -28,6 +28,7 @@ private:
     double h;
     BroadPhase phase;
     std::vector<Body*> bodies;
+    std::vector<Manifold*> ms;
 };
 
 struct DrawBodies{
@@ -42,6 +43,7 @@ struct DrawBodies{
         }
     }
     std::vector<DrawBody> bodies;
+
 };
 
 

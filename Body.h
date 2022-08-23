@@ -111,7 +111,7 @@ public:
     double mass;
     Vec impulse;
     double inv_mass;
-    double dynamic_coeff = 0.21;
+    double dynamic_coeff = 0.28;
     double static_coeff = 0.14;
     double angular_vel;
     double angle;

@@ -76,7 +76,7 @@ oriented.angular_vel = 0;
         if(x != 0 && y !=0 && !added  ){
 
           auto* circ_testee = new Circle{(double) (std::rand() % 100 + 10), Vec{x,y}};
-          Body* testee = new Body{*circ_testee, (double) (std::rand() % 25 + 0.5), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
+          Body* testee = new Body{*circ_testee, 1.0/2000 * M_PI * circ_testee->get_radius() * circ_testee->get_radius(), Vec{(double) (std::rand() % 1600 + 1 - 800), (double) (std::rand() % 1600 + 1 - 800)    }};
             countt++;
            testee->set_velocity(0,0);
           //  testee->gravity = 500;
@@ -99,7 +99,7 @@ oriented.angular_vel = 0;
           // testee->get_shape().rotate(10 * M_PI * 1/180);
            //testee->set_velocity(0,-70);
           //  testee->mass =( testee->get_shape().get_y() - testee->get_shape().get_min().get_y()) * ( testee->get_shape().get_x() - testee->get_shape().get_min().get_x()) /1000;
-          testee->mass = 4;
+         // testee->mass = 4;
           //  testee->gravity = 0;
           //  testee->impulse = Vec{0,0};
             testee->angular_vel = 0;

@@ -5,6 +5,7 @@
 #ifndef ENGINE_GEOMETRY_H
 #define ENGINE_GEOMETRY_H
 #include <cmath>
+#include <vector>
 
 enum class Type {Base, Circle, AABB, OBB};
 

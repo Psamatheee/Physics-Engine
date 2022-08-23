@@ -4,8 +4,14 @@
 
 #include <cfloat>
 #include "Geometry.h"
+#include <iostream>
 
 void Vec::normalize() {
+    if(size == 0) {
+        x = 0;
+        y = 0;
+        return;
+    }
     x = x / size;
     y = y / size;
     size = 1;
@@ -209,8 +215,8 @@ bool AABB::intersects(Shape &shape) {
         //n1
         amax = max.get_y();
         amin = min.get_y();
-        bmin = dotProd(rect[0], n0);
-        bmax = dotProd(rect[0], n0);
+        bmin = dotProd(rect[0], n1);
+        bmax = dotProd(rect[0], n1);
         for (int i = 0; i < 4; i++) {
             Vec point = rect[i];
             double distance = dotProd(point, n1);
@@ -422,7 +428,7 @@ double get_max_point(Helper_Rect& rect, Vec& axis, Vec& point){
     return pen;
 }
 
-double get_collision_normal(OBB& a, OBB& b, Edge& edge){
+double get_collision_normal(OBB& a, OBB& b, Edge& edge, int& edge_num){
     Helper_Rect b_rect = b.get_points();
     Helper_Rect a_rect = a.get_points();
 
@@ -448,11 +454,13 @@ double get_collision_normal(OBB& a, OBB& b, Edge& edge){
         penetration = aa;
         edge[0] = a_rect[3];
         edge[1] = a_rect[0];
+        edge_num = 4;
     }
     if(bb < aa && bb < penetration){
         penetration = bb;
         edge[0] = a_rect[1];
         edge[1] = a_rect[2];
+        edge_num = 2;
     }
 
     //n2
@@ -465,18 +473,20 @@ double get_collision_normal(OBB& a, OBB& b, Edge& edge){
         penetration = aa;
         edge[0] = a_rect[0];
         edge[1] = a_rect[1];
+        edge_num = 1;
     }
     if(bb < aa && bb < penetration){
         penetration = bb;
         edge[0] = a_rect[2];
         edge[1] = a_rect[3];
+        edge_num = 3;
     }
 
     return penetration;
 
 }
 
-void set_incident_edge(OBB& box, Edge& edge, Vec& normal){
+void set_incident_edge(OBB& box, Edge& edge, Vec& normal, int& edge_num){
     Helper_Rect rect = box.get_points();
     double d = 1;
     for(int i = 0; i < 4; i++){
@@ -487,6 +497,7 @@ void set_incident_edge(OBB& box, Edge& edge, Vec& normal){
             d = dot;
             edge.point1 = rect[i];
             edge.point2 = i != 3? rect[i+1] : rect[0];
+            edge_num = i+1;
         }
     }
 }
