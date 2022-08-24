@@ -13,19 +13,12 @@ void State::add_body(Body* body){
     bodies.push_back(body);
 }
 
-void State::update_physics(double dt, int& count){
+void State::update_physics(double dt){
 
     for(Body* body : bodies){
         body->intersecting = false;
         body->contacts.clear();
-        if(count == 1) body->start_pos = body->get_position();
-        if(count == max_count){
-            Vec displacement = body->end_pos - body->start_pos;
-        //   if(std::abs(displacement.get_size()) < 2 ) {body->sleep = true;
-        //   body->set_velocity(0,0);
-         //  body->angular_vel = 0;
-         //  }
-        }
+
 
     }
 
@@ -80,10 +73,8 @@ void State::update_physics(double dt, int& count){
 
 
     for(Body* body : bodies){
-        if(!body->sleep) {
             Vec v{0, -dt * body->gravity };
             body->set_velocity(body->get_velocity() + v);
-        }
     }
 
     for(Manifold* m : ms){
@@ -98,7 +89,7 @@ void State::update_physics(double dt, int& count){
     }
 
     for(Body* body : bodies){
-       if(!body->sleep) body->integrate(dt,w,h);
+       body->integrate(dt,w,h);
        // body->normal = Vec{0,0};
         //body->intersecting = false;
         //   body->set_current(body->get_position());
@@ -120,7 +111,6 @@ void State::update_physics(double dt, int& count){
         //  body->normal = Vec{0,0};
         body->set_current(body->get_position());
 
-        body->impulse = Vec{0,0};
 
 
     }
@@ -159,7 +149,7 @@ void State::reset(){
                OBB* obbe = new OBB{Vec{0,50},Vec{500,0}, Vec{w/2,h/4}};
     Body* oriented = new Body{*obbe,0,Vec{0,0}};
    OBB* obbe2 = new OBB{Vec{0,50},Vec{400,0}, Vec{w/2,h/2}};
-   obbe2->rotate(20 * M_PI /180);
+   obbe2->rotate(10 * M_PI /180);
   Body* oriented2 = new Body{*obbe2,0,Vec{0,0}};
     bodies.push_back(oriented);
     bodies.push_back(oriented2);

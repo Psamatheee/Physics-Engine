@@ -42,23 +42,11 @@ public:
         }else{
             gravity = 400;
         }
-        impulse.set_x(0);
-        impulse.set_y(-mass*gravity);
-        torque = 0;
         angular_vel = 0;
         angle = 0;
         edge.point1 = Vec{};
         edge.point2 = Vec{};
         rest_const = 0.75;
-
-        sleep = false;
-
-        start_pos = shape.get_position();
-        end_pos = shape.get_position();
-
-
-
-
 
     };
 
@@ -109,21 +97,15 @@ public:
 
     double  gravity;
     double mass;
-    Vec impulse;
     double inv_mass;
     double dynamic_coeff = 0.28;
     double static_coeff = 0.14;
     double angular_vel;
     double angle;
-    double torque;
     double inertia;
     double inv_inertia;
     bool intersecting = false;
     Edge edge;
-    bool sleep;
-    Vec start_pos;
-    Vec end_pos;
-
     std::vector<Vec> contacts;
 
 private:

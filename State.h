@@ -8,6 +8,41 @@
 
 #include "DrawBody.cpp"
 
+
+class BroadPhase {
+public:
+    explicit BroadPhase(std::vector<Body *> &bodies) : bodies(bodies) {
+        pairs.clear();
+    }
+
+    void generate_pairs() {
+        pairs.clear();
+        Rectangle a;
+        Rectangle b;
+        for (int i = 0; i < bodies.size(); i++) {
+            int j = i + 1;
+            a.min = bodies[i]->get_shape().get_bounding_box().min;
+            a.max = bodies[i]->get_shape().get_bounding_box().max;
+            while (j < bodies.size()) {
+                b.min = bodies[j]->get_shape().get_bounding_box().min;
+                b.max = bodies[j]->get_shape().get_bounding_box().max;
+                if (does_rect_intersect(a, b) ) {
+                    Body *ap = bodies[i];
+                    Body *bp = bodies[j];
+                    pairs.push_back(Pair{ap, bp});
+                }
+                j++;
+            }
+        }
+    }
+
+    std::vector<Pair> get_pairs() { return pairs; }
+
+private:
+    std::vector<Body *> &bodies;
+    std::vector<Pair> pairs;
+};
+
 class State{
 public:
 
@@ -17,7 +52,7 @@ public:
     double get_h() const{return h;}
 
     void add_body(Body* body);
-    void update_physics(double dt, int& count);
+    void update_physics(double dt  );
     void set_render_pos(double a);
     void reset();
 
