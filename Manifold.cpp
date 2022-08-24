@@ -8,13 +8,10 @@
 Manifold::Manifold(Body &aa, Body &bb) : a(aa), b(bb){
     normal = Vec{};
     penetration = 0;
-
-   // set_manifold();
 }
 
 void Manifold::pre_step() {
     for(int i = 0; i < contact_num; i++){
-
         Vec ra = contacts[i].position - a.get_position();
         Vec rb = contacts[i].position - b.get_position();
         Vec tangent =   cross(normal, 1.0);
@@ -433,8 +430,6 @@ void Manifold::set_new_speeds(double dt ){
     Vec og_v_a = a.get_velocity();
     double og_w_b = b.angular_vel;
     double og_w_a = a.angular_vel;
-    if(a.sleep) a.sleep = false;
-    if(b.sleep) b.sleep = false;
     for(int i = 0; i < contact_num; i++){
         Vec ra = contacts[i].position - a.get_position();
         Vec rb = contacts[i].position - b.get_position();

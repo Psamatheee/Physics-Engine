@@ -388,22 +388,7 @@ return points;
 
 }
 
-Vec OBB::get_normal(int i) {
-    Vec n{};
-    if(i == 0 || i == 2) n = half_height;
-    if(i == 1 || i == 3) n = half_width;
-    if(i == 2 || i == 3) n = -1 * n;
-    n.normalize();
-    return n;
-}
 
-std::vector<Edge> OBB::get_edges() {
-    std::vector<Edge> edges;
-    edges.push_back(Edge{position + half_height - half_width, position + half_height + half_width});
-    edges.push_back(Edge{position + half_height + half_width, position - half_height + half_width});
-    edges.push_back(Edge{position - half_height + half_width, position - half_height - half_width});
-    edges.push_back(Edge{position - half_height - half_width, position + half_height - half_width});
-}
 
 double get_min_point(Helper_Rect& rect, Vec& axis, Vec& point){
     double pen = FLT_MAX;
