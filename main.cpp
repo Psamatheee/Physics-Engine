@@ -64,6 +64,7 @@ int main() {
                                          Vec{(double) (std::rand() % 1600 + 1 - 800),
                                              (double) (std::rand() % 1600 + 1 - 800)}};
             state.add_body(user_circle);
+            user_circle->set_velocity(Vec{});
             added = true;
         }
 

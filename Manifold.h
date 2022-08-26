@@ -5,7 +5,6 @@
 #ifndef ENGINE_MANIFOLD_H
 #define ENGINE_MANIFOLD_H
 #include "Body.cpp"
-//#include <vector>
 
 struct Contact{
     Vec position;
@@ -34,6 +33,7 @@ struct Manifold{
     void set_new_speeds(double dt);
     void update(Manifold* m);
     void pre_step();
+    void calculate_OBBvsCircle(Body& obb_body, Body& circle_body);
 
     Body& a;
     Body& b;
@@ -43,11 +43,6 @@ struct Manifold{
     int contact_num;
     bool stale = true;
 
-
-
 };
-
-
-
 
 #endif //ENGINE_MANIFOLD_H

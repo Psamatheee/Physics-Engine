@@ -36,6 +36,8 @@ public:
 
     void normalize();
     Vec orthogonalize();
+    //clockwise
+    Vec rotate(double angle);
 
     //operators
     friend Vec operator-(const Vec &v1, const Vec &v2);
@@ -65,11 +67,19 @@ struct Matrix {
         double m10, m11;
     };
 
+    //gets a matrix that will rotate a vector by the provided angle in radians CLOCKWISE
+
+
     Vec operator*(Vec a) const {
         return Vec{m00 * a.get_x() + m01 * a.get_y(), m10 * a.get_x() + m11 * a.get_y()};
     }
+    Vec operator*(Vec* a) {
+        return Vec{(m00 * a->get_x() + m01 * a->get_y()) , (m10 * a->get_x() + m11 * a->get_y())};
+    }
 
 };
+
+Matrix get_rotation_m(double angle);
 
 struct Rectangle {
     Vec min;

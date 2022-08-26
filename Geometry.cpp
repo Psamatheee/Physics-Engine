@@ -6,6 +6,9 @@
 #include "Geometry.h"
 #include <iostream>
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//VECTOR FUNCTIONS
+
 void Vec::normalize() {
     if(size == 0) {
         x = 0;
@@ -40,6 +43,11 @@ Vec Vec::orthogonalize() {
     return v;
 }
 
+Vec Vec::rotate(double angle) {
+    Matrix matrix = get_rotation_m(angle);
+    return matrix * this;
+}
+
 //Vector helper functions
 double dotProd(const Vec &v1, const Vec &v2) {
     return v1.get_x() * v2.get_x() + v1.get_y() * v2.get_y();
@@ -52,8 +60,18 @@ Vec cross( const Vec& a, double s )
     return Vec{s * a.get_y(), -s * a.get_x() };
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//MATRIX FUNCTIONS
+
+Matrix get_rotation_m(double angle) {
+    double cos = std::cos((angle));
+    double sin = std::sin(angle);
+
+    return Matrix{cos, sin, -sin, cos};
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Circle Functions
+//CIRCLE FUNCTIONS
 
 bool Circle::intersects(Shape &shape) {
     if (shape.get_type() == Type::Circle) {
