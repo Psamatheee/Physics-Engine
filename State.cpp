@@ -27,8 +27,6 @@ void State::update_physics(double dt) {
             pair.b->get_shape().intersects(pair.a->get_shape())) {
             Body &aa = *pair.a;
             Body &bb = *pair.b;
-            aa.intersecting = true;
-            bb.intersecting = true;
 
             auto *m = new Manifold{aa, bb};
             m->set_manifold();
@@ -87,8 +85,8 @@ void State::update_physics(double dt) {
     auto end = std::remove_if(bodies.begin(),
                               bodies.end(),
                               [&width](Body *const &i) {
-                                  return (i->get_position().get_y() < -500 || i->get_position().get_x() < -500 ||
-                                          i->get_position().get_x() > width + 500);    // remove odd numbers
+                                  return (i->get_position().y < -500 || i->get_position().x < -500 ||
+                                          i->get_position().x > width + 500);    // remove odd numbers
                               });
     bodies.erase(end, bodies.end());
 
@@ -97,8 +95,8 @@ void State::update_physics(double dt) {
 void State::set_render_pos(double a) {
 
     for (Body *body: bodies) {
-        Vec render_pos{body->get_prev().get_x() * a + body->get_curr().get_x() * (1 - a),
-                       body->get_prev().get_y() * a + body->get_curr().get_y() * (1 - a)};
+        Vec render_pos{body->get_prev().x * a + body->get_curr().x * (1 - a),
+                       body->get_prev().y * a + body->get_curr().y * (1 - a)};
         body->set_render(render_pos);
         body->set_previous(body->get_curr());
     }

@@ -12,9 +12,9 @@ void Body::apply_impulse(Vec imp, Vec normal) {
 }
 
 void Body::integrate(double dt, double w, double h) {
-    Vec dr{dt * velocity.get_x(), dt * velocity.get_y()};
-    double new_x = get_position().get_x() + dr.get_x();
-    double new_y = get_position().get_y() + dr.get_y();
+    Vec dr{dt * velocity.x, dt * velocity.y};
+    double new_x = get_position().x + dr.x;
+    double new_y = get_position().y + dr.y;
     set_position(new_x, new_y);
     shape.rotate(angular_vel * dt);
     angle = shape.get_orient();
@@ -26,10 +26,10 @@ struct Pair {
 };
 
 bool operator==(Body a, Body b) {
-    bool vecs = (a.get_position().get_x() == b.get_position().get_x() &&
-                 a.get_position().get_y() == b.get_position().get_y() &&
-                 a.get_velocity().get_y() == b.get_velocity().get_y() &&
-                 a.get_velocity().get_x() == b.get_velocity().get_x());
+    bool vecs = (a.get_position().x == b.get_position().x &&
+                 a.get_position().y == b.get_position().y &&
+                 a.get_velocity().y == b.get_velocity().y &&
+                 a.get_velocity().x == b.get_velocity().x);
     bool mass = (a.get_mass() == b.get_mass());
     return mass && vecs;
 }

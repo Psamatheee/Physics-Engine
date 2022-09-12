@@ -31,8 +31,7 @@ public:
             }
         }
 
-        velocity.set_x(vect.get_x());
-        velocity.set_y(vect.get_y());
+        velocity = vect;
         current = shape.get_position();
         previous = shape.get_position();
         render_pos = shape.get_position();
@@ -40,7 +39,7 @@ public:
 
             gravity = 0;
         }else{
-            gravity = 400;
+            gravity = 980;
         }
         angular_vel = 0;
         angle = 0;
@@ -51,10 +50,7 @@ public:
     };
 
     void apply_impulse(Vec impulse, Vec normal_vec);
-    //~Body();
-
     //getters
-    double get_e() const{return rest_const;}
     double get_mass() const{return mass;}
     Vec& get_velocity(){return velocity;}
     Vec get_position()const {return shape.get_position();}
@@ -66,15 +62,15 @@ public:
 
     //setters
     void set_velocity(double x, double y){
-        velocity.set_x(x);
-        velocity.set_y(y);
+        velocity.x = x;
+        velocity.y = y;
     }
     void set_velocity(Vec vel){
-        velocity.set_x(vel.get_x());
-        velocity.set_y(vel.get_y());
+        velocity.x = vel.x;
+        velocity.y = vel.y;
     }
     void set_position(Vec v){
-        shape.set_position(v.get_x(),v.get_y());
+        shape.set_position(v.x,v.y);
     }
     void set_position(double xx, double yy){
         shape.set_position(xx,yy);
@@ -99,12 +95,10 @@ public:
     double mass;
     double inv_mass;
     double dynamic_coeff = 0.28;
-    double static_coeff = 0.14;
     double angular_vel;
     double angle;
     double inertia;
     double inv_inertia;
-    bool intersecting = false;
     Edge edge;
     std::vector<Vec> contacts;
 

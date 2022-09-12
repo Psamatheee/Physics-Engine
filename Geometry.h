@@ -9,7 +9,7 @@
 #include <vector>
 
 enum class Type {
-    Base, Circle, AABB, OBB
+    Circle, AABB, OBB
 };
 
 class Vec {
@@ -17,27 +17,10 @@ public:
     Vec(double xx, double yy) : x{xx}, y{yy} {size = sqrt(x * x + y * y); }
     Vec() : x{0}, y{0} { size = 0; }
 
-    //getters
-    double get_x() const { return x; }
-    double get_y() const { return y; }
-    double get_size() const { return size; }
-
-    //setters
-    void set_x(double xx) {
-        x = xx;
-        size = sqrt(x * x + y * y);
-    }
-
-    void set_y(double yy) {
-        y = yy;
-        size = sqrt(x * x + y * y);
-    }
-
-
+    double get_size() const { return sqrt(x * x + y * y); }
     void normalize();
     Vec orthogonalize();
-    //clockwise
-    Vec rotate(double angle);
+    Vec rotate(double angle); //(clockwise)
 
     //operators
     friend Vec operator-(const Vec &v1, const Vec &v2);
@@ -45,7 +28,6 @@ public:
     friend Vec operator*(double num, const Vec &v);
     friend bool operator==(const Vec v1, const Vec v2);
 
-private:
     double x;
     double y;
     double size;
@@ -71,10 +53,10 @@ struct Matrix {
 
 
     Vec operator*(Vec a) const {
-        return Vec{m00 * a.get_x() + m01 * a.get_y(), m10 * a.get_x() + m11 * a.get_y()};
+        return Vec{m00 * a.x + m01 * a.y, m10 * a.x + m11 * a.y};
     }
     Vec operator*(Vec* a) {
-        return Vec{(m00 * a->get_x() + m01 * a->get_y()) , (m10 * a->get_x() + m11 * a->get_y())};
+        return Vec{(m00 * a->x + m01 * a->y) , (m10 * a->x + m11 * a->y)};
     }
 
 };
@@ -103,9 +85,9 @@ struct Helper_Rect {
 
 bool does_rect_intersect(Rectangle &r1, Rectangle &r2) {
     // check if there is separation along the x-axis
-    if (r1.min.get_x() > r2.max.get_x() || r1.max.get_x() < r2.min.get_x()) return false;
-    // check if there is separation along the y-.get_x()is
-    if (r1.min.get_y() > r2.max.get_y() || r1.max.get_y() < r2.min.get_y()) return false;
+    if (r1.min.x > r2.max.x || r1.max.x < r2.min.x) return false;
+    // check if there is separation along the y-axis
+    if (r1.min.y > r2.max.y || r1.max.y < r2.min.y) return false;
     return true;
 }
 
@@ -160,16 +142,16 @@ public:
         half_height = hh;
         half_width = hw;
         position = centre;
-        double angle = std::atan(hh.get_x() / hh.get_y());
+        double angle = std::atan(hh.x / hh.y);
         orient = angle;
-        if (hh.get_x() < 0 && hh.get_y() > 0) orient = 2*M_PI + angle;
-        if (hh.get_x() > 0 && hh.get_y() < 0) orient = M_PI / 2 + std::abs(angle);
+        if (hh.x < 0 && hh.y > 0) orient = 2*M_PI + angle;
+        if (hh.x > 0 && hh.y < 0) orient = M_PI / 2 + std::abs(angle);
     }
 
     //getters
     Vec get_position() override { return position; }
-    double get_x() override { return position.get_x(); }
-    double get_y() override { return position.get_y(); }
+    double get_x() override { return position.x; }
+    double get_y() override { return position.y; }
     double get_orient() override { return orient; }
     Type get_type() override { return Type::OBB; }
 
@@ -209,9 +191,9 @@ public:
 
     Vec get_position() override { return centre; }
 
-    double get_x() override { return centre.get_x(); }
+    double get_x() override { return centre.x; }
 
-    double get_y() override { return centre.get_y(); }
+    double get_y() override { return centre.y; }
 
     Type get_type() override { return Type::Circle; }
 
@@ -219,8 +201,8 @@ public:
 
     //setters
     void set_position(double xx, double yy) override {
-        centre.set_x(xx);
-        centre.set_y(yy);
+        centre.x = xx;
+        centre.y = yy;
     }
 
     void set_orient(double angle) { orient = angle; }
@@ -255,9 +237,9 @@ public:
     //getters
     Vec get_position() override { return max; }
 
-    double get_x() override { return max.get_x(); }
+    double get_x() override { return max.x; }
 
-    double get_y() override { return max.get_y(); }
+    double get_y() override { return max.y; }
 
     Type get_type() override { return Type::AABB; }
 

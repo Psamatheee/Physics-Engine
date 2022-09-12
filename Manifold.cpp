@@ -24,7 +24,6 @@ void Manifold::pre_step() {
 
 void Manifold::update(Manifold *m) {
     Contact merged_contacts[2];
-    int new_count = 0;
     for (int i = 0; i < m->contact_num; i++) {
         Contact newc = m->contacts[i];
         bool new_contact = true;
@@ -82,22 +81,22 @@ void calculate_manifold_AABBvsCircle(AABB &a, Circle &b, Manifold &m) {
     Rectangle aa{a.get_min(), a.get_max()};
     Circle bb{b.get_radius(), b.get_position()};
     Vec closest = get_closest_point(aa, bb);
-    double distance_sqr = pow(closest.get_x() - bb.get_x(), 2) +
-                          pow(closest.get_y() - bb.get_y(), 2);
+    double distance_sqr = pow(closest.x - bb.get_x(), 2) +
+                          pow(closest.y - bb.get_y(), 2);
     double penetration = bb.get_radius() - sqrt(distance_sqr);
     m.penetration = penetration;
 
     Vec b_pos = b.get_position();
     Vec a_pos = closest;
     Vec centreLine = b_pos - a_pos;
-    if (bb.get_centre().get_x() < aa.max.get_x() && bb.get_centre().get_x() > aa.min.get_x() &&
-        bb.get_centre().get_y() > aa.min.get_y() && bb.get_centre().get_y() < aa.max.get_y()) {
-        b.set_position(closest.get_x(), closest.get_y());
-        centreLine = Vec{centreLine.get_x() * -1, centreLine.get_y() * -1};
+    if (bb.get_centre().x < aa.max.x && bb.get_centre().x > aa.min.x &&
+        bb.get_centre().y > aa.min.y && bb.get_centre().y < aa.max.y) {
+        b.set_position(closest.x, closest.y);
+        centreLine = Vec{centreLine.x * -1, centreLine.y * -1};
     }
 
     centreLine.normalize();
-    m.normal = Vec{centreLine.get_x(), centreLine.get_y()};
+    m.normal = Vec{centreLine.x, centreLine.y};
     m.contacts[0] = Contact{(closest)};
 }
 
@@ -148,33 +147,33 @@ void Manifold::set_manifold() {
     if (a.get_shape().get_type() == Type::AABB && b.get_shape().get_type() == Type::AABB) {
         Rectangle aa{a.get_shape().get_min(), a.get_shape().get_max()};
         Rectangle bb{b.get_shape().get_min(), b.get_shape().get_max()};
-        Vec r = Vec{(bb.max.get_x() + bb.min.get_x()) / 2, (bb.max.get_y() + bb.min.get_y()) / 2} -
-                Vec{(aa.max.get_x() + aa.min.get_x()) / 2, (aa.max.get_y() + aa.min.get_y()) / 2};
-        double a_extent = (aa.max.get_x() - aa.min.get_x()) / 2;
-        double b_extent = (bb.max.get_x() - bb.min.get_x()) / 2;
-        double x_overlap = a_extent + b_extent - std::abs(r.get_x());
+        Vec r = Vec{(bb.max.x + bb.min.x) / 2, (bb.max.y + bb.min.y) / 2} -
+                Vec{(aa.max.x + aa.min.x) / 2, (aa.max.y + aa.min.y) / 2};
+        double a_extent = (aa.max.x - aa.min.x) / 2;
+        double b_extent = (bb.max.x - bb.min.x) / 2;
+        double x_overlap = a_extent + b_extent - std::abs(r.x);
 
         // SAT test on x axis
         if (x_overlap > 0) {
             // Calculate half extents along x axis for each object
-            a_extent = (aa.max.get_y() - aa.min.get_y()) / 2;
-            b_extent = (bb.max.get_y() - bb.min.get_y()) / 2;
+            a_extent = (aa.max.y - aa.min.y) / 2;
+            b_extent = (bb.max.y - bb.min.y) / 2;
 
             // Calculate overlap on y axis
-            double y_overlap = a_extent + b_extent - std::abs(r.get_y());
+            double y_overlap = a_extent + b_extent - std::abs(r.y);
 
             // SAT test on y axis
             if (y_overlap > 0) {
                 // Find out which axis is axis of least p
                 if (x_overlap < y_overlap) {
                     // Point towards B knowing that n points from A to B
-                    if (r.get_x() < 0) normal = Vec{-1, 0};
+                    if (r.x < 0) normal = Vec{-1, 0};
                     else normal = Vec{1, 0};
                     penetration = x_overlap;
 
                 } else {
                     // Point toward B knowing that n points from A to B
-                    if (r.get_y() < 0)
+                    if (r.y < 0)
                         normal = Vec{0, -1};
                     else
                         normal = Vec{0, 1};
@@ -224,8 +223,8 @@ void Manifold::set_manifold() {
         }
 
         Vec temp = ref[1] - ref[0];
-        n.set_x(temp.get_y() * -1);
-        n.set_y(temp.get_x());
+        n.x = temp.y * -1;
+        n.y = temp.x;
         n.normalize();
         normal = n;
         !flip ? set_incident_edge(bb, edgeB, normal, inc_num) : set_incident_edge(aa, edgeA, normal, inc_num);
@@ -256,8 +255,8 @@ void Manifold::set_manifold() {
         Vec l = ref[0];
         Vec r = ref[1];
         bool clipped = false;
-        bool flip_contacts = c1.position.get_x() < c2.position.get_x();
-        if (ref[0].get_x() > ref[1].get_x()) {
+        bool flip_contacts = c1.position.x < c2.position.x;
+        if (ref[0].x > ref[1].x) {
             l = ref[1];
             r = ref[0];
             side_normal = -1 * side_normal;
@@ -348,9 +347,7 @@ void position_correction(Manifold &m) {
 
     const double slop = 0.1;
     const double percent = 0.4;
-    if (m.penetration != m.penetration) {
-        int i = 0;
-    }
+
 
     Vec correction =
             (std::max(std::abs(m.penetration) - slop, 0.0) / (m.a.get_inv_mass() + m.b.get_inv_mass()) * percent) *
@@ -370,17 +367,12 @@ void position_correction(Manifold &m) {
 
 void Manifold::set_new_speeds(double dt) {
 
-    Vec og_v_b = b.get_velocity();
-    Vec og_v_a = a.get_velocity();
-    double og_w_b = b.angular_vel;
-    double og_w_a = a.angular_vel;
     for (int i = 0; i < contact_num; i++) {
         Vec ra = contacts[i].position - a.get_position();
         Vec rb = contacts[i].position - b.get_position();
         Vec relative_vel = b.get_velocity() + cross(rb, b.angular_vel) - a.get_velocity() - cross(ra, a.angular_vel);
         double inverse_mass = a.inv_mass + b.inv_mass + pow(cross(ra, normal), 2) * a.inv_inertia +
                               pow(cross(rb, normal), 2) * b.inv_inertia;
-        double bias = 0.2 / dt * std::max(0.0, penetration - 0.01);
         double j = -1 * (dotProd(relative_vel, normal));
         j = j / inverse_mass;
 
@@ -401,7 +393,6 @@ void Manifold::set_new_speeds(double dt) {
         double jtt = -dotProd(relative_vel, tangent);
         double jt = jtt / inverse_mass;
 
-        double static_coefficient = std::sqrt(a.static_coeff * b.static_coeff);
         double dynamic_coefficient = std::sqrt(a.dynamic_coeff * b.dynamic_coeff);
 
         double maxPt = dynamic_coefficient * contacts[i].Pn;
