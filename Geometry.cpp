@@ -10,11 +10,13 @@
 //VECTOR FUNCTIONS
 
 void Vec::normalize() {
+    get_size();
     if(size == 0) {
         x = 0;
         y = 0;
         return;
     }
+
     x = x / size;
     y = y / size;
     size = 1;

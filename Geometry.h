@@ -15,9 +15,14 @@ enum class Type {
 class Vec {
 public:
     Vec(double xx, double yy) : x{xx}, y{yy} {size = sqrt(x * x + y * y); }
-    Vec() : x{0}, y{0} { size = 0; }
+    Vec() : x{0}, y{0} { size = 0 ; }
 
-    double get_size() const { return sqrt(x * x + y * y); }
+    double get_size()  {
+        if(size == 1) return 1;
+        size =  sqrt(x * x + y * y);
+        return size;
+    }
+
     void normalize();
     Vec orthogonalize();
     Vec rotate(double angle); //(clockwise)
