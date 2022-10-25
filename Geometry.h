@@ -17,12 +17,7 @@ public:
     Vec(double xx, double yy) : x{xx}, y{yy} {size = sqrt(x * x + y * y); }
     Vec() : x{0}, y{0} { size = 0 ; }
 
-    double get_size()  {
-        if(size == 1) return 1;
-        size =  sqrt(x * x + y * y);
-        return size;
-    }
-
+    double get_size();
     void normalize();
     Vec orthogonalize();
     Vec rotate(double angle); //(clockwise)
@@ -38,14 +33,14 @@ public:
     double size;
 };
 
+double dotProd(const Vec &v1, const Vec &v2) ;
+double cross(Vec a, Vec b);
+Vec cross( const Vec& a, double s );
+
 struct Edge {
     Vec point1;
     Vec point2;
-
-    Vec &operator[](int i) {
-        if (i == 0) return point1;
-        if (i == 1) return point2;
-    }
+    Vec &operator[](int i) ;
 };
 
 struct Matrix {
@@ -53,9 +48,7 @@ struct Matrix {
         double m00, m01;
         double m10, m11;
     };
-
     //gets a matrix that will rotate a vector by the provided angle in radians CLOCKWISE
-
 
     Vec operator*(Vec a) const {
         return Vec{m00 * a.x + m01 * a.y, m10 * a.x + m11 * a.y};
@@ -75,26 +68,14 @@ struct Rectangle {
 
 //represents 4 points of a rectangle starting from top right corner and going clockwise;
 struct Helper_Rect {
-    Vec operator[](int i) const {
-        if (i == 0) return point1;
-        if (i == 1) return point2;
-        if (i == 2) return point3;
-        if (i == 3) return point4;
-    }
-
+    Vec operator[](int i) const ;
     Vec point1;
     Vec point2;
     Vec point3;
     Vec point4;
 };
 
-bool does_rect_intersect(Rectangle &r1, Rectangle &r2) {
-    // check if there is separation along the x-axis
-    if (r1.min.x > r2.max.x || r1.max.x < r2.min.x) return false;
-    // check if there is separation along the y-axis
-    if (r1.min.y > r2.max.y || r1.max.y < r2.min.y) return false;
-    return true;
-}
+bool does_rect_intersect(Rectangle &r1, Rectangle &r2);
 
 class Shape {
 public:
@@ -111,6 +92,7 @@ public:
     virtual bool intersects(Shape &shape) = 0;
     virtual void rotate(double angle) = 0;
     virtual double get_orient() = 0; //clockwise
+    virtual double get_inertia(double mass) = 0;
 
     //Circle functions
     virtual double get_radius() = 0;
@@ -137,21 +119,9 @@ public:
 
 class OBB : public Shape {
 public:
-    OBB() {
-        half_height = Vec{0, 0};
-        half_width = Vec{0, 0};
-        orient = 0;
-    }
+    OBB();
 
-    OBB(Vec hh, Vec hw, Vec centre) {
-        half_height = hh;
-        half_width = hw;
-        position = centre;
-        double angle = std::atan(hh.x / hh.y);
-        orient = angle;
-        if (hh.x < 0 && hh.y > 0) orient = 2*M_PI + angle;
-        if (hh.x > 0 && hh.y < 0) orient = M_PI / 2 + std::abs(angle);
-    }
+    OBB(Vec hh, Vec hw, Vec centre);
 
     //getters
     Vec get_position() override { return position; }
@@ -176,6 +146,8 @@ public:
     Vec get_min() override { return half_width; }
     Vec get_max() override { return half_height; }
 
+
+    double get_inertia(double mass) override;
     Vec position;
     Helper_Rect points;
     Vec half_height;
@@ -212,11 +184,8 @@ public:
 
     void set_orient(double angle) { orient = angle; }
 
-    void rotate(double angle) override {
-        orient += angle;
-        if (orient > 2 * M_PI) orient = orient - 2 * M_PI;
-        if (orient < 0) orient = 2 * M_PI + orient;
-    };
+    double get_inertia(double mass) override;
+    void rotate(double angle) override;
 
     Rectangle get_bounding_box() override;
 
@@ -235,6 +204,8 @@ private:
     double orient;
 };
 
+double get_depth(Shape &a, Shape &b);
+
 class AABB : public Shape {
 public:
     AABB(Vec min, Vec max) : min(min), max(max) {};
@@ -250,6 +221,7 @@ public:
 
     Vec get_min() override { return min; }
 
+    double get_inertia(double mass) override;
     Vec get_max() override { return max; }
 
     //setters
@@ -273,6 +245,11 @@ private:
     Vec max;
 
 };
+
+Vec get_closest_point(Rectangle &r, Circle &c);
+void set_incident_edge(OBB& box, Edge& edge, Vec& normal, int& edge_num);
+
+double get_collision_normal(OBB& a, OBB& b, Edge& edge, int& edge_num);
 
 
 #endif //ENGINE_GEOMETRY_H

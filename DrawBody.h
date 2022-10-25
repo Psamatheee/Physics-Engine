@@ -5,9 +5,7 @@
 #ifndef ENGINE_DRAWBODY_H
 #define ENGINE_DRAWBODY_H
 #include <SFML/Graphics.hpp>
-//#include "Geometry.cpp"
-//#include "Body.cpp"
-#include "Manifold.cpp"
+#include "Manifold.h"
 
 
 class DrawBody : public sf::Drawable{

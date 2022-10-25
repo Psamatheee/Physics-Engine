@@ -4,7 +4,7 @@
 
 #ifndef ENGINE_MANIFOLD_H
 #define ENGINE_MANIFOLD_H
-#include "Body.cpp"
+#include "Body.h"
 
 struct Contact{
     Vec position;
@@ -44,5 +44,6 @@ struct Manifold{
     bool stale = true;
 
 };
+void position_correction(Manifold &m);
 
 #endif //ENGINE_MANIFOLD_H

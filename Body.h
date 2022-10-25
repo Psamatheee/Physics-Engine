@@ -5,51 +5,16 @@
 #ifndef ENGINE_BODY_H
 #define ENGINE_BODY_H
 #include <cmath>
-#include "Geometry.cpp"
+#include "Geometry.h"
 
 
 
 class Body{
 public:
-    Body(Shape& shape, double m, Vec vect) : shape(shape), mass{m}{
-        if(mass == 0){
-            inv_mass = 0;
-            inertia = 0;
-            inv_inertia = 0;
-        }else{
-            inv_mass = 1/mass;
-            if(shape.get_type() == Type::OBB){
-                inertia = 1.0/12 * mass * (pow(shape.get_max().get_size() * 2, 2) + pow(shape.get_min().get_size() * 2, 2));
-                inv_inertia = 1/inertia;
-            }else if(shape.get_type() == Type::Circle){
-                inertia = 1.0/2 * mass * shape.get_radius()*shape.get_radius();
-                inv_inertia = 1/inertia;
-            }else{
-
-                inv_inertia = 0;
-                inertia = 0;
-            }
-        }
-
-        velocity = vect;
-        current = shape.get_position();
-        previous = shape.get_position();
-        render_pos = shape.get_position();
-        if(mass == 0) {
-
-            gravity = 0;
-        }else{
-            gravity = 980;
-        }
-        angular_vel = 0;
-        angle = 0;
-        edge.point1 = Vec{};
-        edge.point2 = Vec{};
-        rest_const = 0.75;
-
-    };
+    Body(Shape& shape, double m);
 
     void apply_impulse(Vec impulse, Vec normal_vec);
+
     //getters
     double get_mass() const{return mass;}
     Vec& get_velocity(){return velocity;}
@@ -85,7 +50,6 @@ public:
         render_pos = vec;
     }
 
-
     void integrate(double dt);
 
     friend bool operator==(Body a, Body b);
@@ -110,8 +74,11 @@ private:
     Vec current;
     Vec previous;
     Vec render_pos;
+};
 
-
+struct Pair {
+    Body *a;
+    Body *b;
 };
 
 

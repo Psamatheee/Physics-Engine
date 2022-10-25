@@ -9,6 +9,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //VECTOR FUNCTIONS
 
+double Vec::get_size()  {
+    if(size == 1) return 1;
+    size =  sqrt(x * x + y * y);
+    return size;
+}
+
 void Vec::normalize() {
     get_size();
     if(size == 0) {
@@ -50,7 +56,6 @@ Vec Vec::rotate(double angle) {
     return matrix * this;
 }
 
-//Vector helper functions
 double dotProd(const Vec &v1, const Vec &v2) {
     return v1.x * v2.x + v1.y * v2.y;
 }
@@ -61,6 +66,7 @@ Vec cross( const Vec& a, double s )
 {
     return Vec{s * a.y, -s * a.x };
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //MATRIX FUNCTIONS
@@ -74,6 +80,12 @@ Matrix get_rotation_m(double angle) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //CIRCLE FUNCTIONS
+
+void Circle::rotate(double angle) {
+orient += angle;
+if (orient > 2 * M_PI) orient = orient - 2 * M_PI;
+if (orient < 0) orient = 2 * M_PI + orient;
+};
 
 bool Circle::intersects(Shape &shape) {
     if (shape.get_type() == Type::Circle) {
@@ -89,6 +101,9 @@ bool Circle::intersects(Shape &shape) {
     return false;
 }
 
+double Circle::get_inertia(double mass){
+    return  1.0/2 * mass * radius * radius;
+}
 
 Rectangle Circle::get_bounding_box() {
     Rectangle bb;
@@ -166,6 +181,10 @@ void AABB::set_position(double xx, double yy) {
     max.x = xx;
 }
 
+
+double AABB::get_inertia(double mass){
+    return 0;
+}
 bool AABB::intersects(Shape &shape) {
     if (shape.get_type() == Type::AABB) {
         if (min.x > shape.get_max().x || max.x < shape.get_min().x) return false;
@@ -284,6 +303,26 @@ bool AABB::intersects(Shape &shape) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //OBB functions
+
+OBB::OBB() {
+    half_height = Vec{0, 0};
+    half_width = Vec{0, 0};
+    orient = 0;
+}
+
+OBB::OBB(Vec hh, Vec hw, Vec centre) {
+half_height = hh;
+half_width = hw;
+position = centre;
+double angle = std::atan(hh.x / hh.y);
+orient = angle;
+if (hh.x < 0 && hh.y > 0) orient = 2*M_PI + angle;
+if (hh.x > 0 && hh.y < 0) orient = M_PI / 2 + std::abs(angle);
+}
+
+double OBB::get_inertia(double mass){
+    return 1.0/12 * mass * (pow(half_height.get_size() * 2, 2) + pow(half_width.get_size() * 2, 2));
+}
 
 Rectangle OBB::get_bounding_box() {
 
@@ -471,4 +510,24 @@ void set_incident_edge(OBB& box, Edge& edge, Vec& normal, int& edge_num){
             edge_num = i+1;
         }
     }
+}
+
+Vec& Edge::operator[](int i){
+if (i == 0) return point1;
+if (i == 1) return point2;
+}
+
+Vec Helper_Rect::operator[](int i) const {
+    if (i == 0) return point1;
+    if (i == 1) return point2;
+    if (i == 2) return point3;
+    if (i == 3) return point4;
+}
+
+bool does_rect_intersect(Rectangle &r1, Rectangle &r2) {
+    // check if there is separation along the x-axis
+    if (r1.min.x > r2.max.x || r1.max.x < r2.min.x) return false;
+    // check if there is separation along the y-axis
+    if (r1.min.y > r2.max.y || r1.max.y < r2.min.y) return false;
+    return true;
 }

@@ -1,15 +1,12 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include "State.cpp"
+#include "State.h"
 
 int main() {
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Simple Physics Engine");
     double h = window.getSize().y;
     double w = window.getSize().x;
-
-    std::vector<Body> bodes;
-    std::vector<Circle> shapes;
 
     State state{w, h};
     state.reset();
@@ -61,8 +58,7 @@ int main() {
             auto *circ_shape = new Circle{(double) (std::rand() % 100 + 10), Vec{x, y}};
             Body *user_circle = new Body{*circ_shape,
                                          1.0 / 2000 * M_PI * circ_shape->get_radius() * circ_shape->get_radius(),
-                                         Vec{(double) (std::rand() % 1600 + 1 - 800),
-                                             (double) (std::rand() % 1600 + 1 - 800)}};
+                                       };
             state.add_body(user_circle);
             user_circle->set_velocity(Vec{});
             added = true;
@@ -70,14 +66,12 @@ int main() {
 
         if (xx != 0 && yy != 0 && !added_box) {
             auto *obb = new OBB{Vec{0, 50}, Vec{50, 0}, Vec{xx, yy}};
-            Body *user_obb = new Body{*obb, 3, Vec{}};
+            Body *user_obb = new Body{*obb, 3};
             state.add_body(user_obb);
             added_box = true;
         }
 
-        for (Body bode: bodes) {
-            state.add_body(&bode);
-        }
+        
 
         draw_bodies.update(state);
 

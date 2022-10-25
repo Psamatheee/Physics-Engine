@@ -3,6 +3,7 @@
 //
 
 #include "Manifold.h"
+#include "Geometry.h"
 #include <algorithm>
 
 Manifold::Manifold(Body &aa, Body &bb) : a(aa), b(bb) {

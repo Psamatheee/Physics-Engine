@@ -6,7 +6,7 @@
 #define ENGINE_STATE_H
 
 
-#include "DrawBody.cpp"
+#include "DrawBody.h"
 
 
 class BroadPhase {
@@ -15,27 +15,7 @@ public:
         pairs.clear();
     }
 
-    void generate_pairs() {
-        pairs.clear();
-        Rectangle a;
-        Rectangle b;
-        for (int i = 0; i < bodies.size(); i++) {
-            int j = i + 1;
-            a.min = bodies[i]->get_shape().get_bounding_box().min;
-            a.max = bodies[i]->get_shape().get_bounding_box().max;
-            while (j < bodies.size()) {
-                b.min = bodies[j]->get_shape().get_bounding_box().min;
-                b.max = bodies[j]->get_shape().get_bounding_box().max;
-                if (does_rect_intersect(a, b) ) {
-                    Body *ap = bodies[i];
-                    Body *bp = bodies[j];
-                    pairs.push_back(Pair{ap, bp});
-                }
-                j++;
-            }
-        }
-    }
-
+    void generate_pairs();
     std::vector<Pair> get_pairs() { return pairs; }
 
 private:
@@ -56,8 +36,6 @@ public:
     void set_render_pos(double a);
     void reset();
 
-    int max_count = 100;
-
 private:
     double w;
     double h;
@@ -67,16 +45,7 @@ private:
 };
 
 struct DrawBodies{
-    void update(State& state){
-        std::vector<Body*> state_bodies = state.get_bodies();
-        bodies.clear();
-        for (Body* body : state_bodies){
-
-            Body& bod = *body;
-            DrawBody draw_body{bod, state.get_h(), sf::Color::White};
-            bodies.push_back(draw_body);
-        }
-    }
+    void update(State& state);
     std::vector<DrawBody> bodies;
 
 };

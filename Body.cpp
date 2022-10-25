@@ -5,6 +5,34 @@
 #include "Body.h"
 #include <algorithm>
 
+Body::Body(Shape& shape, double m) : shape(shape), mass{m}{
+    if(mass == 0){
+        inv_mass = 0;
+        inertia = 0;
+        inv_inertia = 0;
+    }else{
+        inv_mass = 1/mass;
+        inertia = shape.get_inertia(mass);
+        inv_inertia = 1/inertia;
+    }
+
+    current = shape.get_position();
+    previous = shape.get_position();
+    render_pos = shape.get_position();
+    if(mass == 0) {
+
+        gravity = 0;
+    }else{
+        gravity = 980;
+    }
+    angular_vel = 0;
+    angle = 0;
+    edge.point1 = Vec{};
+    edge.point2 = Vec{};
+    rest_const = 0.75;
+
+};
+
 void Body::apply_impulse(Vec imp, Vec normal) {
     velocity = velocity + inv_mass * imp;
     double angular_impulse = -cross(normal, imp);
@@ -20,10 +48,7 @@ void Body::integrate(double dt) {
     angle = shape.get_orient();
 }
 
-struct Pair {
-    Body *a;
-    Body *b;
-};
+
 
 bool operator==(Body a, Body b) {
     bool vecs = (a.get_position().x == b.get_position().x &&
