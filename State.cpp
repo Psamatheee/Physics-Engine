@@ -71,7 +71,8 @@ void State::update_physics(double dt) {
     }
 
     for (Body *body: bodies) {
-        body->integrate(dt, w, h);
+        body->integrate(dt);
+
     }
 
     for (Manifold *m: ms) {
@@ -111,9 +112,9 @@ void State::reset() {
     }
 
     ms.clear();
-    OBB *obbe = new OBB{Vec{0, 50}, Vec{500, 0}, Vec{w / 2, h / 4}};
+    OBB *obbe = new OBB{Vec{0, 50}, Vec{700, 0}, Vec{w / 2, h / 4}};
     Body *oriented = new Body{*obbe, 0, Vec{0, 0}};
-    OBB *obbe2 = new OBB{Vec{0, 50}, Vec{400, 0}, Vec{w / 2, h / 2}};
+    OBB *obbe2 = new OBB{Vec{0, 10}, Vec{200, 0}, Vec{w / 4, h / 2}};
     obbe2->rotate(10 * M_PI / 180);
     Body *oriented2 = new Body{*obbe2, 0, Vec{0, 0}};
     bodies.push_back(oriented);

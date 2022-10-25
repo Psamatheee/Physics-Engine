@@ -11,7 +11,7 @@ void Body::apply_impulse(Vec imp, Vec normal) {
     angular_vel += inv_inertia * angular_impulse;
 }
 
-void Body::integrate(double dt, double w, double h) {
+void Body::integrate(double dt) {
     Vec dr{dt * velocity.x, dt * velocity.y};
     double new_x = get_position().x + dr.x;
     double new_y = get_position().y + dr.y;

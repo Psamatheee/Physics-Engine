@@ -86,7 +86,7 @@ public:
     }
 
 
-    void integrate(double dt, double w, double h);
+    void integrate(double dt);
 
     friend bool operator==(Body a, Body b);
     friend bool operator!=(Body a, Body b);
