@@ -3,6 +3,19 @@
 #include <vector>
 #include "State.h"
 
+/* Clean up to do:
+ * change function parameters to body instead of obb so that you dont have to copy it (in progress)
+ * change the shape definition of min and max to half width and half height to avoid confusion in obb calculations
+ * add collision file to clean up the collision calculations
+ * smart pointers
+ * clean up algorithms
+ *
+ * */
+
+
+
+
+
 int main() {
     sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Simple Physics Engine");
     double h = window.getSize().y;
@@ -89,7 +102,7 @@ int main() {
 
         double a = accum / dt;
         state.set_render_pos(a);
-        window.clear(sf::Color::White);
+        window.clear(sf::Color::Black);
         for (const DrawBody &draw_body: draw_bodies.bodies) {
             window.draw(draw_body);
         }

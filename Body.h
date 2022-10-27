@@ -52,9 +52,6 @@ public:
 
     void integrate(double dt);
 
-    friend bool operator==(Body a, Body b);
-    friend bool operator!=(Body a, Body b);
-
     double  gravity;
     double mass;
     double inv_mass;

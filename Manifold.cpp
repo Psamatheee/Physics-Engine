@@ -5,6 +5,8 @@
 #include "Manifold.h"
 #include "Geometry.h"
 #include <algorithm>
+#include <cfloat>
+
 
 Manifold::Manifold(Body &aa, Body &bb) : a(aa), b(bb) {
     normal = Vec{};
@@ -119,11 +121,110 @@ void Manifold::calculate_OBBvsCircle(Body& obb_body, Body& circle_body) {
 }
 
 
+double get_min_point(Helper_Rect& rect, Vec& axis, Vec& point){
+    double pen = FLT_MAX;
+    point = Vec{};
+    for(int i =0; i < 4; i++){
+        if(dotProd(axis,rect[i]) < pen) {
+            pen =  dotProd(axis,rect[i]);
+            point = rect[i];
+        }
+    }
+    return pen;
+}
+double get_max_point(Helper_Rect& rect, Vec& axis, Vec& point){
+    double pen = 0;
+    point = Vec{};
+    for(int i =0; i < 4; i++){
+        if(dotProd(axis,rect[i]) > pen) {
+            pen =  dotProd(axis,rect[i]);
+            point = rect[i];
+        }
+    }
+    return pen;
+}
+
+double get_OBB_collision_normal(Body& bodyA, Body& bodyB, Edge& edge, int& edge_num){
+    Shape& a = bodyA.get_shape();
+    Shape& b = bodyB.get_shape();
+    Helper_Rect b_rect = b.get_points();
+    Helper_Rect a_rect = a.get_points();
+
+    double penetration = FLT_MAX;
+
+    Vec n1 = a.get_max();
+    Vec n2 = a.get_min();
+    n1.normalize();
+    n2.normalize();
+
+    Vec max_a = a.get_position() + a.get_max() + a.get_min();
+    Vec min_a = a.get_position() - a.get_min() - a.get_min();
+
+    //n1
+    Vec max_b{};
+    Vec min_b{};
+    get_max_point(b_rect, n1, max_b);
+    get_min_point(b_rect, n1, min_b);
+    double aa = dotProd(max_a, n1) - dotProd(min_b, n1);
+    double bb = dotProd(max_b, n1) - dotProd(min_a, n1);
+
+    if(aa < bb && aa < penetration){
+        penetration = aa;
+        edge[0] = a_rect[3];
+        edge[1] = a_rect[0];
+        edge_num = 4;
+    }
+    if(bb < aa && bb < penetration){
+        penetration = bb;
+        edge[0] = a_rect[1];
+        edge[1] = a_rect[2];
+        edge_num = 2;
+    }
+
+    //n2
+    get_max_point(b_rect, n2, max_b);
+    get_min_point(b_rect, n2, min_b);
+    aa = dotProd(max_a, n2) - dotProd(min_b, n2);
+    bb = dotProd(max_b, n2) - dotProd(min_a, n2);
+
+    if(aa < bb && aa < penetration){
+        penetration = aa;
+        edge[0] = a_rect[0];
+        edge[1] = a_rect[1];
+        edge_num = 1;
+    }
+    if(bb < aa && bb < penetration){
+        penetration = bb;
+        edge[0] = a_rect[2];
+        edge[1] = a_rect[3];
+        edge_num = 3;
+    }
+
+    return penetration;
+
+}
+
+
+void set_incident_edge(Body& obb, Edge& edge, Vec& normal, int& edge_num){
+    Shape& box = obb.get_shape();
+    Helper_Rect rect = box.get_points();
+    double d = 1;
+    for(int i = 0; i < 4; i++){
+        Vec edge_normal = i != 3? rect[i] - rect[i+1] : rect[i] - rect[0];
+        edge_normal = edge_normal.orthogonalize();
+        double dot = dotProd(edge_normal, normal);
+        if( dot <= d) {
+            d = dot;
+            edge.point1 = rect[i];
+            edge.point2 = i != 3? rect[i+1] : rect[0];
+            edge_num = i+1;
+        }
+    }
+}
+
 void Manifold::set_manifold() {
     if ((a.get_shape().get_type() == Type::Circle && b.get_shape().get_type() == Type::Circle)) {
-        Vec a_position = a.get_position();
-        Vec b_position = b.get_position();
-        normal = b_position - a_position;
+        normal = b.get_position() - a.get_position();
         normal.normalize();
         penetration = get_depth(a.get_shape(), b.get_shape());
         double alpha = std::abs(dotProd(b.get_position(), normal) - dotProd(a.get_position(), normal)) -
@@ -188,10 +289,7 @@ void Manifold::set_manifold() {
         contact_num = 0;
         double p;
         Vec n{};
-        OBB aa{a.get_shape().get_max(), a.get_shape().get_min(), a.get_position()};
-        aa.orient = a.get_shape().get_orient();
-        OBB bb{b.get_shape().get_max(), b.get_shape().get_min(), b.get_position()};
-        bb.orient = b.get_shape().get_orient();
+
 
         Edge edgeA;
         int edge_A_num = 0;
@@ -202,8 +300,8 @@ void Manifold::set_manifold() {
         Edge inc;
         int ref_num, inc_num;
 
-        double p_a = get_collision_normal(aa, bb, edgeA, edge_A_num);
-        double p_b = get_collision_normal(bb, aa, edgeB, edge_B_num);
+        double p_a = get_OBB_collision_normal(a, b, edgeA, edge_A_num);
+        double p_b = get_OBB_collision_normal(b, a, edgeB, edge_B_num);
 
         bool flip;
         if (p_a <= p_b) {
@@ -228,7 +326,7 @@ void Manifold::set_manifold() {
         n.y = temp.x;
         n.normalize();
         normal = n;
-        !flip ? set_incident_edge(bb, edgeB, normal, inc_num) : set_incident_edge(aa, edgeA, normal, inc_num);
+        !flip ? set_incident_edge(b.get_shape(), edgeB, normal, inc_num) : set_incident_edge(a.get_shape(), edgeA, normal, inc_num);
         inc = !flip ? edgeB : edgeA;
 
         Contact c1, c2;
