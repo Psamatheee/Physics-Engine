@@ -4,8 +4,7 @@
 
 #ifndef ENGINE_MANIFOLD_H
 #define ENGINE_MANIFOLD_H
-#include "Body.h"
-
+#include "Collision.h"
 struct Contact{
     Vec position;
     struct ID{
@@ -45,6 +44,5 @@ struct Manifold{
 
 };
 void position_correction(Manifold &m);
-double get_OBB_collision_normal(Body& a, Body& b, Edge& edge, int& edge_num);
-void set_incident_edge(Body& obb, Edge& edge, Vec& normal, int& edge_num);
+
 #endif //ENGINE_MANIFOLD_H

@@ -9,6 +9,8 @@
  * add collision file to clean up the collision calculations
  * smart pointers
  * clean up algorithms
+ * get state to add the bodies
+ * make body hold the shape not just the reference
  *
  * */
 

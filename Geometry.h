@@ -41,6 +41,7 @@ Vec cross( const Vec& a, double s );
 struct Edge {
     Vec point1;
     Vec point2;
+    int edge_num;
     Vec &operator[](int i) ;
 };
 
@@ -81,7 +82,6 @@ bool does_rect_intersect(Rectangle &r1, Rectangle &r2);
 class Shape {
 public:
 
-    virtual std::unique_ptr<Shape> clone() const = 0;
     //getters & setters
     virtual Vec get_position() = 0;
     virtual double get_x() = 0;
@@ -106,7 +106,6 @@ public:
     //OBB functions
     virtual Helper_Rect &get_points() = 0;
 
-    virtual ~Shape() = 0;
 };
 
 /* Oriented Bounding Box
@@ -127,10 +126,7 @@ public:
 
     OBB(Vec hh, Vec hw, Vec centre);
 
-     std::unique_ptr<Shape> clone() const override
-    {
-        return std::make_unique<OBB>(*this);
-    }
+
 
     //getters
     Vec get_position() override { return position; }
@@ -168,10 +164,7 @@ class Circle : public Shape {
 public:
     Circle(double r, Vec c) : radius{r}, centre{c} { orient = 0; }
 
-    std::unique_ptr<Shape> clone() const override
-    {
-        return std::make_unique<Circle>(*this);
-    }
+
 
     Circle() : radius{50}, centre(100, 100) {}
 
@@ -224,10 +217,6 @@ class AABB : public Shape {
 public:
     AABB(Vec min, Vec max) : min(min), max(max) {};
 
-    std::unique_ptr<Shape> clone() const override
-    {
-        return std::make_unique<AABB>(*this);
-    }
     //getters
     Vec get_position() override { return max; }
 
