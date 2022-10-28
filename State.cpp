@@ -2,7 +2,12 @@
 // Created by julia on 27/06/22.
 //
 
+#include <random>
 #include "State.h"
+
+std::random_device rd;
+std::mt19937 mt(rd());
+std::uniform_int_distribution<int> gen(1,80);
 
 void BroadPhase::generate_pairs() {
     pairs.clear();
@@ -22,6 +27,20 @@ void BroadPhase::generate_pairs() {
             }
             j++;
         }
+    }
+}
+
+void State::create_body(Type shape_type, Vec position) {
+    if(shape_type == Type::Circle){
+        double i = gen(mt);
+        std::unique_ptr<Circle> circ_shape(new Circle{ i, position});
+        std::unique_ptr<Body> user_body( new Body{std::move(circ_shape)});
+        bodies.push_back(std::move(user_body));
+    }
+    if(shape_type == Type::OBB){
+        std::unique_ptr<OBB> obb( new OBB{Vec{0, 50}, Vec{50, 0}, position});
+        std::unique_ptr<Body> user_body(new Body{std::move(obb)});
+        bodies.push_back(std::move(user_body));
     }
 }
 

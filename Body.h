@@ -11,7 +11,7 @@
 
 class Body{
 public:
-    Body(Shape& shape, double m);
+    Body(std::unique_ptr<Shape> shape);
 
     void apply_impulse(Vec impulse, Vec normal_vec);
 
@@ -24,6 +24,7 @@ public:
     Vec get_curr(){return current;}
     Vec get_prev(){return previous;}
     Vec get_render()const {return render_pos;}
+    void set_static();
 
     //setters
     void set_velocity(double x, double y){
@@ -64,7 +65,7 @@ public:
     std::vector<Vec> contacts;
 
 private:
-    Shape& shape;
+    std::unique_ptr<Shape> shape;
     double rest_const;
 
     Vec velocity;

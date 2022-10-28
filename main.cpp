@@ -70,9 +70,9 @@ int main() {
 
         if (x != 0 && y != 0 && !added) {
 
-            auto *circ_shape = new Circle{(double) (std::rand() % 100 + 10), Vec{x, y}};
+            std::unique_ptr<Circle> circ_shape(new Circle{(double) (std::rand() % 100 + 10), Vec{x, y}});
             Body *user_circle = new Body{*circ_shape,
-                                         1.0 / 2000 * M_PI * circ_shape->get_radius() * circ_shape->get_radius(),
+
                                        };
             state.add_body(user_circle);
             user_circle->set_velocity(Vec{});
@@ -80,8 +80,7 @@ int main() {
         }
 
         if (xx != 0 && yy != 0 && !added_box) {
-            auto *obb = new OBB{Vec{0, 50}, Vec{50, 0}, Vec{xx, yy}};
-            Body *user_obb = new Body{*obb, 3};
+
             state.add_body(user_obb);
             added_box = true;
         }

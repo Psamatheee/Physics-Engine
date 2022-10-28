@@ -89,7 +89,7 @@ if (orient < 0) orient = 2 * M_PI + orient;
 
 bool Circle::intersects(Shape &shape) {
     if (shape.get_type() == Type::Circle) {
-        double distance_sqr = pow(centre.x - shape.get_x(), 2) + pow(centre.y - shape.get_y(), 2);
+        double distance_sqr = pow(centre.x - shape.get_position().x, 2) + pow(centre.y - shape.get_position().y, 2);
         return pow(radius + shape.get_radius(), 2) >= distance_sqr;
     }
     if (shape.get_type() == Type::AABB) {
@@ -117,8 +117,8 @@ Rectangle Circle::get_bounding_box() {
 //get how far in the circles are intersecting each other
 double get_depth(Shape &a, Shape &b) {
     if (a.get_type() == Type::Circle && b.get_type() == Type::Circle) {
-        double distance_sqr = pow(a.get_x() - b.get_x(), 2) +
-                              pow(a.get_y() - b.get_y(), 2);
+        double distance_sqr = pow(a.get_position().x - b.get_position().x, 2) +
+                              pow(a.get_position().y - b.get_position().y, 2);
         double distance = sqrt(distance_sqr);
         return a.get_radius() + b.get_radius() - distance;
     }
@@ -201,7 +201,7 @@ bool AABB::intersects(Shape &shape) {
         if(inside) return true;
         Circle c{shape.get_radius(), shape.get_position()};
         Vec closest = get_closest_point(r, c);
-        double distance_sqr = pow(closest.x - shape.get_x(), 2) + pow(closest.y - shape.get_y(), 2);
+        double distance_sqr = pow(closest.x - shape.get_position().x, 2) + pow(closest.y - shape.get_position().y, 2);
         return pow(c.get_radius(), 2) >= distance_sqr;
     }
     if (shape.get_type() == Type::OBB) {

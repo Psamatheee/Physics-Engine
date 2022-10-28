@@ -84,8 +84,6 @@ public:
 
     //getters & setters
     virtual Vec get_position() = 0;
-    virtual double get_x() = 0;
-    virtual double get_y() = 0;
     virtual Type get_type() = 0;
     virtual void set_position(double xx, double yy) = 0;
     virtual Rectangle get_bounding_box() = 0;
@@ -106,6 +104,7 @@ public:
     //OBB functions
     virtual Helper_Rect &get_points() = 0;
 
+    virtual ~Shape() =0;
 };
 
 /* Oriented Bounding Box
@@ -126,12 +125,8 @@ public:
 
     OBB(Vec hh, Vec hw, Vec centre);
 
-
-
     //getters
     Vec get_position() override { return position; }
-    double get_x() override { return position.x; }
-    double get_y() override { return position.y; }
     double get_orient() override { return orient; }
     Type get_type() override { return Type::OBB; }
 
@@ -175,9 +170,6 @@ public:
 
     Vec get_position() override { return centre; }
 
-    double get_x() override { return centre.x; }
-
-    double get_y() override { return centre.y; }
 
     Type get_type() override { return Type::Circle; }
 
@@ -219,13 +211,7 @@ public:
 
     //getters
     Vec get_position() override { return max; }
-
-    double get_x() override { return max.x; }
-
-    double get_y() override { return max.y; }
-
     Type get_type() override { return Type::AABB; }
-
     Vec get_min() override { return min; }
 
     double get_inertia(double mass) override;

@@ -5,22 +5,22 @@
 #include "Body.h"
 #include <algorithm>
 
-Body::Body(Shape& shape, double m) : shape(shape), mass{m}{
-    if(mass == 0){
-        inv_mass = 0;
-        inertia = 0;
-        inv_inertia = 0;
-        gravity = 0;
-    }else{
+Body::Body(std::unique_ptr<Shape> s){
+    shape = std::move(s);
+    if(shape->get_type() == Type::Circle){
+       mass = 1.0 / 2000 * M_PI * shape->get_radius() * shape->get_radius();
+    }
+    if(shape->get_type() == Type::OBB){
+        mass = 3; //TODO:calc mass
+    }
         inv_mass = 1/mass;
-        inertia = shape.get_inertia(mass);
+        inertia = shape->get_inertia(mass);
         inv_inertia = 1/inertia;
         gravity = 980;
-    }
 
-    current = shape.get_position();
-    previous = shape.get_position();
-    render_pos = shape.get_position();
+    current = shape->get_position();
+    previous = shape->get_position();
+    render_pos = shape->get_position();
 
     angular_vel = 0;
     angle = 0;
@@ -28,6 +28,13 @@ Body::Body(Shape& shape, double m) : shape(shape), mass{m}{
     edge.point2 = Vec{};
 
 };
+
+void Body::set_static() {
+    inv_mass = 0;
+    inertia = 0;
+    inv_inertia = 0;
+    gravity = 0;
+}
 
 void Body::apply_impulse(Vec imp, Vec normal) {
     velocity = velocity + inv_mass * imp;

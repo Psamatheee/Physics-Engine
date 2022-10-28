@@ -11,6 +11,7 @@
 Manifold::Manifold(Body &aa, Body &bb) : a(aa), b(bb) {
     normal = Vec{};
     penetration = 0;
+    contact_num = 0;
 }
 
 void Manifold::pre_step() {
@@ -60,8 +61,8 @@ void calculate_manifold_AABBvsCircle(AABB &a, Circle &b, Manifold &m) {
     Rectangle aa{a.get_min(), a.get_max()};
     Circle bb{b.get_radius(), b.get_position()};
     Vec closest = get_closest_point(aa, bb);
-    double distance_sqr = pow(closest.x - bb.get_x(), 2) +
-                          pow(closest.y - bb.get_y(), 2);
+    double distance_sqr = pow(closest.x - bb.get_position().x, 2) +
+                          pow(closest.y - bb.get_position().y, 2);
     double penetration = bb.get_radius() - sqrt(distance_sqr);
     m.penetration = penetration;
 

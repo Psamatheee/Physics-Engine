@@ -31,6 +31,7 @@ public:
     std::vector<Body*> get_bodies() const {return bodies;}
     double get_h() const{return h;}
 
+    void create_body(Type shape_type, Vec position);
     void add_body(Body* body);
     void update_physics(double dt  );
     void set_render_pos(double a);
@@ -40,7 +41,7 @@ private:
     double w;
     double h;
     BroadPhase phase;
-    std::vector<Body*> bodies;
+    std::vector<std::unique_ptr<Body>> bodies;
     std::vector<Manifold*> ms;
 };
 
