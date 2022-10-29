@@ -37,13 +37,12 @@ void draw_state(sf::RenderWindow& window, State& state){
             line.setFillColor(sf::Color::White);
             line.setPosition(body.get_position().x, h - body.get_position().y);
 
-            if(body.intersecting){
-                circ.setFillColor(sf::Color::Red);
-            }
+
             window.draw(circ);
             window.draw(line);
         }
         if (body.get_shape().get_type() == Type::AABB) {
+
 
             sf::VertexArray quad(sf::Quads, 4);
             float width = (float) body.get_shape().get_max().x - body.get_shape().get_min().x;
@@ -55,15 +54,15 @@ void draw_state(sf::RenderWindow& window, State& state){
             rectangle.setFillColor(sf::Color::White);
             rectangle.setOutlineThickness(-3.f);
             rectangle.setOutlineColor(sf::Color::Black);
-
             window.draw(rectangle);
         }
 
         if (body.get_shape().get_type() == Type::OBB) {
-
-            sf::VertexArray quad(sf::Quads, 4);
             double height = 2 *  body.get_shape().get_max().get_size();
             double width = 2 * body.get_shape().get_min().get_size();
+
+            sf::VertexArray quad(sf::Quads, 4);
+
 
             sf::RectangleShape obb(sf::Vector2f(width,height));
             obb.setOrigin(width/2, height/2);
@@ -71,12 +70,10 @@ void draw_state(sf::RenderWindow& window, State& state){
             obb.rotate(body.get_shape().get_orient() *  180/M_PI);
             obb.setFillColor(sf::Color::Black);
             obb.setOutlineColor(sf::Color::White);
-            if(body.intersecting){
-                obb.setFillColor(sf::Color::Red);
-            }
-            obb.setOutlineThickness(-3.f);
 
+            obb.setOutlineThickness(-3.f);
             window.draw(obb);
+
 
         }
     }

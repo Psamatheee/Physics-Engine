@@ -46,7 +46,7 @@ void State::create_body(Type shape_type, Vec position) {
         std::unique_ptr<OBB> obb = std::make_unique<OBB>(OBB{Vec{0, half_height}, Vec{half_width, 0}, position});
         obb->rotate(M_PI /180 * gen(mt));
         Body b{Body{std::move(obb)}};
-        b.angular_vel = gen(mt) % 6 ;
+       // b.angular_vel = gen(mt) % 6 ;
         bodies.push_back(std::move(b));
     }
 }
@@ -81,8 +81,8 @@ void State::update_physics(double dt) {
                 m.set_manifold();
                 bool contains = false;
                 for (Manifold& manifold: ms) {
-                    if ((&aa == &manifold.a && &pair.b == &manifold.b) ||
-                        (&pair.a == &manifold.b && &pair.b == &manifold.a)) {
+                    if ((aa == manifold.a && pair.b == manifold.b) ||
+                        (pair.a == manifold.b && pair.b == manifold.a)) {
                         contains = true;
                         manifold.update(m);
                         manifold.stale = false;
@@ -162,11 +162,11 @@ void State::reset() {
     body.set_static();
     bodies.push_back(std::move(body));
 
-  //  std::unique_ptr<OBB> obb2( new OBB{Vec{0, 10}, Vec{200, 0}, Vec{w / 4, h / 2}});
-  //  obb2->rotate(10 * M_PI / 180);
-  //  Body body2{std::move(obb2)};
-  //  body2.set_static();
-   // bodies.push_back(std::move(body2));
+   std::unique_ptr<OBB> obb2( new OBB{Vec{0, 10}, Vec{200, 0}, Vec{w / 4, h / 2}});
+   obb2->rotate(10 * M_PI / 180);
+   Body body2{std::move(obb2)};
+   body2.set_static();
+    bodies.push_back(std::move(body2));
 
 }
 

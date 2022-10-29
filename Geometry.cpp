@@ -367,17 +367,17 @@ bool OBB::intersects(Shape &shape) {
     }
     if(shape.get_type() == Type::OBB){
         OBB temp_b{shape.get_max(), shape.get_min(), shape.get_position() - position};
-        OBB model_this{get_max(), get_min(), Vec{}};
-        model_this.orient = orient;
-        model_this.rotate(-orient);
+        OBB model_this{get_max().rotate(-orient), get_min().rotate(-orient), Vec{}};
+ //       model_this.orient = orient;
+     //   model_this.rotate(-orient);
         temp_b.orient = (shape.get_orient());
         temp_b.rotate_origin(-orient);
         Helper_Rect rect = model_this.get_points();
         Vec model_max = rect[0];
         Vec model_min = rect[0];
         for(int i = 1; i<4; i++){
-            if(rect[i].x > model_max.y && rect[i].x > model_max.x) model_max = rect[i];
-            if(rect[i].x < model_min.y && rect[i].x < model_min.x) model_min = rect[i];
+            if(rect[i].y > 0 && rect[i].x > 0) model_max = rect[i];
+            if(rect[i].y < 0 && rect[i].x < 0) model_min = rect[i];
         }
         AABB model_rect{model_min, model_max};
         return model_rect.intersects(temp_b);

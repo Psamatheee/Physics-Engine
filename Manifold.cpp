@@ -269,8 +269,8 @@ void Manifold::set_manifold() {
 
 void position_correction(Manifold &m) {
 
-    const double slop = 0.1;
-    const double percent = 0.4;
+    const double slop = 0.05;
+    const double percent = 0.6;
 
 
     Vec correction =
