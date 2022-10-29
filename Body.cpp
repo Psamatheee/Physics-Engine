@@ -11,7 +11,7 @@ Body::Body(std::unique_ptr<Shape> s){
        mass = 1.0 / 2000 * M_PI * shape->get_radius() * shape->get_radius();
     }
     if(shape->get_type() == Type::OBB){
-        mass = 3; //TODO:calc mass
+        mass = 1.0 / 2000 * shape->get_max().get_size()*2 * shape->get_min().get_size()*2; //TODO:calc mass
     }
         inv_mass = 1/mass;
         inertia = shape->get_inertia(mass);
@@ -24,16 +24,23 @@ Body::Body(std::unique_ptr<Shape> s){
 
     angular_vel = 0;
     angle = 0;
+    velocity = Vec{};
     edge.point1 = Vec{};
     edge.point2 = Vec{};
 
 };
 
+bool is_intersecting(Body *a, Body *b) {
+    Shape& sh = *b->shape;
+    Shape& sh2 = *a->shape;
+    return (a->shape->intersects(sh) || b->shape->intersects(sh2)) ;
+}
 void Body::set_static() {
     inv_mass = 0;
     inertia = 0;
     inv_inertia = 0;
     gravity = 0;
+    mass = 0;
 }
 
 void Body::apply_impulse(Vec imp, Vec normal) {
@@ -50,9 +57,16 @@ void Body::integrate(double dt) {
     set_position(new_x, new_y);
 
     //rotation
-    shape.rotate(angular_vel * dt);
-    angle = shape.get_orient();
+    shape->rotate(angular_vel * dt);
+    angle = shape->get_orient();
 
 }
+
+bool Body::operator==(Body *other) {
+    if(shape == other->shape) return true;
+    return false;
+}
+
+
 
 

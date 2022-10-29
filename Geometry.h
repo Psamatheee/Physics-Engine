@@ -41,7 +41,7 @@ Vec cross( const Vec& a, double s );
 struct Edge {
     Vec point1;
     Vec point2;
-    int edge_num;
+    int edge_num = 0;
     Vec &operator[](int i) ;
 };
 
@@ -104,7 +104,7 @@ public:
     //OBB functions
     virtual Helper_Rect &get_points() = 0;
 
-    virtual ~Shape() =0;
+    virtual ~Shape() = default;;
 };
 
 /* Oriented Bounding Box
@@ -232,6 +232,7 @@ public:
     void rotate(double angle) override {}
 
     Helper_Rect &get_points() override {};
+
 
 private:
     Vec min;

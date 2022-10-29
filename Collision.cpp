@@ -40,8 +40,8 @@ double get_OBB_collision_normal(Body& bodyA, Body& bodyB, Edge& edge){
     n1.normalize();
     n2.normalize();
 
-    Vec max_a = a.get_position() + a.get_max() + a.get_min();
-    Vec min_a = a.get_position() - a.get_min() - a.get_min();
+    Vec max_a = bodyA.get_position() + a.get_max() + a.get_min();
+    Vec min_a = bodyA.get_position() - a.get_max() - a.get_min();
 
     //n1
     Vec max_b{};

@@ -8,7 +8,7 @@
 #include <algorithm>
 
 
-Manifold::Manifold(Body &aa, Body &bb) : a(aa), b(bb) {
+Manifold::Manifold(Body *aa, Body *bb) : a(aa), b(bb) {
     normal = Vec{};
     penetration = 0;
     contact_num = 0;
@@ -16,25 +16,25 @@ Manifold::Manifold(Body &aa, Body &bb) : a(aa), b(bb) {
 
 void Manifold::pre_step() {
     for (int i = 0; i < contact_num; i++) {
-        Vec ra = contacts[i].position - a.get_position();
-        Vec rb = contacts[i].position - b.get_position();
+        Vec ra = contacts[i].position - a->get_position();
+        Vec rb = contacts[i].position - b->get_position();
         Vec tangent = cross(normal, 1.0);
         tangent.normalize();
         Vec impulse = contacts[i].Pn * normal + contacts[i].Pt * tangent;
-        a.apply_impulse(-1 * impulse, ra);
-        b.apply_impulse(impulse, rb);
+        a->apply_impulse(-1 * impulse, ra);
+        b->apply_impulse(impulse, rb);
     }
 }
 
-void Manifold::update(Manifold *m) {
+void Manifold::update(const Manifold& m) {
     Contact merged_contacts[2];
-    for (int i = 0; i < m->contact_num; i++) {
-        Contact newc = m->contacts[i];
+    for (int i = 0; i < m.contact_num; i++) {
+        Contact newc = m.contacts[i];
         bool new_contact = true;
         for (int j = 0; j < contact_num; j++) {
             Contact oldc = contacts[j];
-            if (newc.id == oldc.id && a.get_shape().get_type() != Type::Circle &&
-                b.get_shape().get_type() != Type::Circle) {
+            if (newc.id == oldc.id && a->get_shape().get_type() != Type::Circle &&
+                b->get_shape().get_type() != Type::Circle) {
                 merged_contacts[i] = newc;
                 merged_contacts[i].Pn = oldc.Pn;
                 merged_contacts[i].Pt = oldc.Pt;
@@ -47,12 +47,12 @@ void Manifold::update(Manifold *m) {
         }
 
     }
-    for (int i = 0; i < m->contact_num; i++) {
+    for (int i = 0; i < m.contact_num; i++) {
         contacts[i] = merged_contacts[i];
     }
-    normal = m->normal;
-    penetration = m->penetration;
-    contact_num = m->contact_num;
+    normal = m.normal;
+    penetration = m.penetration;
+    contact_num = m.contact_num;
 }
 
 
@@ -101,32 +101,32 @@ void Manifold::calculate_OBBvsCircle(Body& obb_body, Body& circle_body) {
 
 
 void Manifold::set_manifold() {
-    if ((a.get_shape().get_type() == Type::Circle && b.get_shape().get_type() == Type::Circle)) {
-        normal = b.get_position() - a.get_position();
+    if ((a->get_shape().get_type() == Type::Circle && b->get_shape().get_type() == Type::Circle)) {
+        normal = b->get_position() - a->get_position();
         normal.normalize();
-        penetration = get_depth(a.get_shape(), b.get_shape());
-        double alpha = std::abs(dotProd(b.get_position(), normal) - dotProd(a.get_position(), normal)) -
-                       b.get_shape().get_radius();
-        double x = a.get_shape().get_radius() - alpha;
+        penetration = get_depth(a->get_shape(), b->get_shape());
+        double alpha = std::abs(dotProd(b->get_position(), normal) - dotProd(a->get_position(), normal)) -
+                       b->get_shape().get_radius();
+        double x = a->get_shape().get_radius() - alpha;
         Contact contact;
-        contact.position = a.get_position() + x / 2 * normal;
+        contact.position = a->get_position() + x / 2 * normal;
         contacts[0] = contact;
         contact_num = 1;
     }
 
-    if (a.get_shape().get_type() == Type::OBB && b.get_shape().get_type() == Type::Circle) {
-        calculate_OBBvsCircle(a,b);
+    if (a->get_shape().get_type() == Type::OBB && b->get_shape().get_type() == Type::Circle) {
+        calculate_OBBvsCircle(*a,*b);
         return;
     }
-    if (b.get_shape().get_type() == Type::OBB && a.get_shape().get_type() == Type::Circle) {
-        calculate_OBBvsCircle(b,a);
+    if (b->get_shape().get_type() == Type::OBB && a->get_shape().get_type() == Type::Circle) {
+        calculate_OBBvsCircle(*b,*a);
         normal = -1 * normal;
         return;
     }
 
 
 
-    if (a.get_shape().get_type() == Type::OBB && b.get_shape().get_type() == Type::OBB) {
+    if (a->get_shape().get_type() == Type::OBB && b->get_shape().get_type() == Type::OBB) {
         contact_num = 0;
         double p;
         Vec n{};
@@ -134,8 +134,8 @@ void Manifold::set_manifold() {
         Edge ref;
         Edge inc;
 
-        double p_a = get_OBB_collision_normal(a, b, ref);
-        double p_b = get_OBB_collision_normal(b, a, inc);
+        double p_a = get_OBB_collision_normal(*a, *b, ref);
+        double p_b = get_OBB_collision_normal(*b, *a, inc);
 
         bool flip;
         if (p_a <= p_b) {
@@ -143,7 +143,7 @@ void Manifold::set_manifold() {
             p = p_a;
             flip = false;
         }
-        if (p_b < p_a) {
+        else {
             //b has the reference face
             p = p_b;
             Edge temp = ref;
@@ -157,7 +157,8 @@ void Manifold::set_manifold() {
         n.y = temp.x;
         n.normalize();
         normal = n;
-        flip ? set_incident_edge(a, inc, normal) : set_incident_edge(b, inc, normal);
+
+        flip ? set_incident_edge(*a, inc, normal) : set_incident_edge(*b, inc, normal);
 
         Contact c1, c2;
         c1.position = inc[0];
@@ -262,7 +263,7 @@ void Manifold::set_manifold() {
         }
 
         if (flip) normal = -1 * normal;
-        contact_num = count;
+      contact_num = count;
     }
 }
 
@@ -273,29 +274,29 @@ void position_correction(Manifold &m) {
 
 
     Vec correction =
-            (std::max(std::abs(m.penetration) - slop, 0.0) / (m.a.get_inv_mass() + m.b.get_inv_mass()) * percent) *
+            (std::max(std::abs(m.penetration) - slop, 0.0) / (m.a->get_inv_mass() + m.b->get_inv_mass()) * percent) *
             m.normal;
 
-    Vec a_pos = m.a.get_position();
-    Vec a_correct = m.a.get_inv_mass() * correction;
+    Vec a_pos = m.a->get_position();
+    Vec a_correct = m.a->get_inv_mass() * correction;
     Vec new_a = a_pos - a_correct;
-    m.a.set_position(new_a);
+    m.a->set_position(new_a);
 
-    Vec b_pos = m.b.get_position();
-    Vec b_correct = m.b.get_inv_mass() * correction;
+    Vec b_pos = m.b->get_position();
+    Vec b_correct = m.b->get_inv_mass() * correction;
     Vec new_b = b_correct + b_pos;
-    m.b.set_position(new_b);
+    m.b->set_position(new_b);
 
 }
 
 void Manifold::set_new_speeds(double dt) {
 
     for (int i = 0; i < contact_num; i++) {
-        Vec ra = contacts[i].position - a.get_position();
-        Vec rb = contacts[i].position - b.get_position();
-        Vec relative_vel = b.get_velocity() + cross(rb, b.angular_vel) - a.get_velocity() - cross(ra, a.angular_vel);
-        double inverse_mass = a.inv_mass + b.inv_mass + pow(cross(ra, normal), 2) * a.inv_inertia +
-                              pow(cross(rb, normal), 2) * b.inv_inertia;
+        Vec ra = contacts[i].position - a->get_position();
+        Vec rb = contacts[i].position - b->get_position();
+        Vec relative_vel = b->get_velocity() + cross(rb, b->angular_vel) - a->get_velocity() - cross(ra, a->angular_vel);
+        double inverse_mass = a->inv_mass + b->inv_mass + pow(cross(ra, normal), 2) * a->inv_inertia +
+                              pow(cross(rb, normal), 2) * b->inv_inertia;
         double j = -1 * (dotProd(relative_vel, normal));
         j = j / inverse_mass;
 
@@ -304,19 +305,19 @@ void Manifold::set_new_speeds(double dt) {
         j = contacts[i].Pn - pn0;
 
         Vec impulse = j * normal;
-        a.apply_impulse(-1 * impulse, ra);
-        b.apply_impulse(impulse, rb);
+        a->apply_impulse(-1 * impulse, ra);
+        b->apply_impulse(impulse, rb);
 
-        relative_vel = b.get_velocity() + cross(rb, b.angular_vel) - a.get_velocity() - cross(ra, a.angular_vel);
+        relative_vel = b->get_velocity() + cross(rb, b->angular_vel) - a->get_velocity() - cross(ra, a->angular_vel);
         Vec tangent = cross(normal, 1.0);
         tangent.normalize();
 
-        inverse_mass = a.inv_mass + b.inv_mass + pow(cross(ra, tangent), 2) * a.inv_inertia +
-                       pow(cross(rb, tangent), 2) * b.inv_inertia;
+        inverse_mass = a->inv_mass + b->inv_mass + pow(cross(ra, tangent), 2) * a->inv_inertia +
+                       pow(cross(rb, tangent), 2) * b->inv_inertia;
         double jtt = -dotProd(relative_vel, tangent);
         double jt = jtt / inverse_mass;
 
-        double dynamic_coefficient = std::sqrt(a.dynamic_coeff * b.dynamic_coeff);
+        double dynamic_coefficient = std::sqrt(a->dynamic_coeff * b->dynamic_coeff);
 
         double maxPt = dynamic_coefficient * contacts[i].Pn;
         double oldtimp = contacts[i].Pt;
@@ -324,8 +325,8 @@ void Manifold::set_new_speeds(double dt) {
         jt = contacts[i].Pt - oldtimp;
         Vec friction_force = jt * tangent;
 
-        b.apply_impulse(friction_force, rb);
-        a.apply_impulse(-1 * friction_force, ra);
+        b->apply_impulse(friction_force, rb);
+        a->apply_impulse(-1 * friction_force, ra);
 
     }
 }
