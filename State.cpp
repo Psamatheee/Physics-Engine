@@ -44,10 +44,8 @@ void State::create_body(Type shape_type, Vec position) {
         double half_width = gen(mt);
 
         std::unique_ptr<OBB> obb = std::make_unique<OBB>(OBB{Vec{0, half_height}, Vec{half_width, 0}, position});
-        obb->rotate(M_PI /180 * gen(mt));
-        Body b{Body{std::move(obb)}};
-       // b.angular_vel = gen(mt) % 6 ;
-        bodies.push_back(std::move(b));
+        obb->rotate(gen(mt));
+        bodies.emplace_back(Body{std::move(obb)});
     }
 }
 
@@ -70,6 +68,7 @@ void State::update_physics(double dt) {
     }
     if (bodies.size() > 1) {
         generate_pairs();
+        //TODO: fix the pointer changing vector issue
         for (Pair& pair: pairs) {
             if (is_intersecting(pair.a,pair.b)) {
                 Body* aa = pair.a;
