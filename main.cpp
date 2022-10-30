@@ -136,7 +136,7 @@ int main() {
         window.clear(sf::Color::Black);
       draw_state(window,state);
 
-      body_number.setString(std::to_string(state.get_size()));
+      body_number.setString("Number of Bodies: " + std::to_string(state.get_size()));
       body_number.setFillColor(sf::Color::White);
       window.draw(body_number);
 
