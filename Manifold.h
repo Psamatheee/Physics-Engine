@@ -24,14 +24,14 @@ struct Contact{
 };
 
 struct Pair {
-    Body* a;
-    Body* b;
+    Body& a;
+    Body& b;
 };
 
 
 struct Manifold{
 
-    Manifold(Body* aa, Body* bb);
+    Manifold(Body& aa, Body& bb);
 
     void set_manifold();
     void set_new_speeds(double dt);
@@ -39,8 +39,8 @@ struct Manifold{
     void pre_step();
     void calculate_OBBvsCircle(Body& obb_body, Body& circle_body);
 
-    Body* a;
-    Body* b;
+    Body& a;
+    Body& b;
     double penetration;
     Vec normal;
     Contact contacts[2];

@@ -20,20 +20,18 @@ Body::Body(std::unique_ptr<Shape> s){
 
     current = shape->get_position();
     previous = shape->get_position();
-    render_pos = shape->get_position();
+    render_position = shape->get_position();
 
     angular_vel = 0;
     angle = 0;
     velocity = Vec{};
-    edge.point1 = Vec{};
-    edge.point2 = Vec{};
 
 };
 
-bool is_intersecting(Body *a, Body *b) {
-    Shape& sh = *b->shape;
-    Shape& sh2 = *a->shape;
-    return (a->shape->intersects(sh) || b->shape->intersects(sh2)) ;
+bool is_intersecting(Body& a, Body& b) {
+    Shape& sh = *b.shape;
+    Shape& sh2 = *a.shape;
+    return (a.shape->intersects(sh) || b.shape->intersects(sh2)) ;
 }
 void Body::set_static() {
     inv_mass = 0;
@@ -55,6 +53,7 @@ void Body::integrate(double dt) {
     double new_x = get_position().x + dr.x;
     double new_y = get_position().y + dr.y;
     set_position(new_x, new_y);
+    current = get_position();
 
     //rotation
     shape->rotate(angular_vel * dt);
@@ -62,10 +61,6 @@ void Body::integrate(double dt) {
 
 }
 
-bool Body::operator==(Body *other) {
-    if(shape == other->shape) return true;
-    return false;
-}
 
 
 

@@ -8,20 +8,14 @@
 #include "Body.h"
 #include "Manifold.h"
 
-
-
-
 class State{
 public:
 
-
     State(double ww, double hh) : w(ww), h(hh){};
 
-    std::vector<Body>& get_bodies()  {return bodies;}
-    double get_h() const{return h;}
-
+    size_t get_size(){return bodies.size();}
+    std::vector<Body>& get_bodies(){return bodies;}
     void create_body(Type shape_type, Vec position);
-    void add_body(Body& body);
     void update_physics(double dt  );
     void set_render_pos(double a);
     void reset();

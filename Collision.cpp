@@ -28,8 +28,8 @@ double get_max_point(Helper_Rect& rect, Vec& axis, Vec& point){
 }
 
 double get_OBB_collision_normal(Body& bodyA, Body& bodyB, Edge& edge){
-    Shape& a = bodyA.get_shape();
-    Shape& b = bodyB.get_shape();
+    Shape& a = *bodyA.shape;
+    Shape& b = *bodyB.shape;
     Helper_Rect b_rect = b.get_points();
     Helper_Rect a_rect = a.get_points();
 
@@ -89,7 +89,7 @@ double get_OBB_collision_normal(Body& bodyA, Body& bodyB, Edge& edge){
 
 
 void set_incident_edge(Body& obb, Edge& edge, Vec& normal){
-    Shape& box = obb.get_shape();
+    Shape& box = *obb.shape;
     Helper_Rect rect = box.get_points();
     double d = 1;
     for(int i = 0; i < 4; i++){
@@ -125,12 +125,6 @@ int clip(Vec normal, double dot_prod, Edge &edge, bool &clipped) {
 
         }
     }
-    if (count > 2) {
-        int k = 0;
-    }
+
     return count;
-}
-
-void calc_ref_inc_edges(Body& a, Body& b, Edge& ref, Edge& inc){
-
 }

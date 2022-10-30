@@ -9,53 +9,27 @@
 
 
 
-class Body{
+struct Body{
 public:
-    Body(std::unique_ptr<Shape> shape);
+    explicit Body(std::unique_ptr<Shape> shape);
 
     void apply_impulse(Vec impulse, Vec normal_vec);
 
-    friend bool is_intersecting(Body* a, Body* b);
-    //getters
-    double get_mass() const{return mass;}
-    Vec& get_velocity(){return velocity;}
-    Vec get_position()const {return shape->get_position();}
-    double get_inv_mass() const{return inv_mass;}
-    Shape& get_shape() const {return *shape;}
-    Vec get_curr(){return current;}
-    Vec get_prev(){return previous;}
-    Vec get_render()const {return render_pos;}
-    void set_static();
+    friend bool is_intersecting(Body& a, Body& b);
 
-    //setters
-    void set_velocity(double x, double y){
-        velocity.x = x;
-        velocity.y = y;
+    void set_static();
+    Vec get_position() const{
+        return shape->get_position();
     }
-    void set_velocity(Vec vel){
-        velocity.x = vel.x;
-        velocity.y = vel.y;
-    }
-    bool operator==(Body* other);
     void set_position(Vec v){
         shape->set_position(v.x,v.y);
     }
     void set_position(double xx, double yy){
         shape->set_position(xx,yy);
     }
-    void set_current(Vec vec){
-        current = vec;
-    }
-    void set_previous(Vec vec){
-        previous = vec;
-    }
-    void set_render(Vec vec){
-        render_pos = vec;
-    }
 
     void integrate(double dt);
-
-    double  gravity;
+    double gravity;
     double mass;
     double inv_mass;
     double dynamic_coeff = 0.28;
@@ -63,18 +37,12 @@ public:
     double angle;
     double inertia;
     double inv_inertia;
-    Edge edge;
     std::vector<Vec> contacts;
-    bool intersecting = false;
-
-private:
     std::unique_ptr<Shape> shape;
-    double rest_const;
-
     Vec velocity;
     Vec current;
     Vec previous;
-    Vec render_pos;
+    Vec render_position;
 };
 
 

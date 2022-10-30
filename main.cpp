@@ -12,19 +12,19 @@
  * get state to add the bodies
  * make body hold the shape not just the reference
  *
- * */
+ */
 
 
 void draw_state(sf::RenderWindow& window, State& state){
     for(Body& body : state.get_bodies()){
         float h = window.getSize().y;
-        if (body.get_shape().get_type() == Type::Circle) {
+        if (body.shape->get_type() == Type::Circle) {
             //circle
-            auto rad = (float) body.get_shape().get_radius();
+            auto rad = (float) body.shape->get_radius();
             sf::CircleShape circ{rad};
             circ.setOrigin(circ.getRadius(), circ.getRadius());
             circ.setFillColor(sf::Color::Black);
-            circ.setPosition((float) body.get_render().x, (float) (h - body.get_render().y));
+            circ.setPosition((float) body.render_position.x, (float) (h - body.render_position.y));
             circ.rotate(body.angle);
             circ.setOutlineThickness(-3.f);
             circ.setOutlineColor(sf::Color::White);
@@ -37,44 +37,24 @@ void draw_state(sf::RenderWindow& window, State& state){
             line.setFillColor(sf::Color::White);
             line.setPosition(body.get_position().x, h - body.get_position().y);
 
-
             window.draw(circ);
             window.draw(line);
         }
-        if (body.get_shape().get_type() == Type::AABB) {
 
-
-            sf::VertexArray quad(sf::Quads, 4);
-            float width = (float) body.get_shape().get_max().x - body.get_shape().get_min().x;
-            float height = (float) body.get_shape().get_max().y - body.get_shape().get_min().y;
-            sf::RectangleShape rectangle(sf::Vector2f(width, height));
-            rectangle.setOrigin(width, 0);
-            rectangle.setPosition(body.get_shape().get_max().x, h - body.get_shape().get_max().y);
-
-            rectangle.setFillColor(sf::Color::White);
-            rectangle.setOutlineThickness(-3.f);
-            rectangle.setOutlineColor(sf::Color::Black);
-            window.draw(rectangle);
-        }
-
-        if (body.get_shape().get_type() == Type::OBB) {
-            double height = 2 *  body.get_shape().get_max().get_size();
-            double width = 2 * body.get_shape().get_min().get_size();
+        if (body.shape->get_type() == Type::OBB) {
+            double height = 2 *  body.shape->get_max().get_size();
+            double width = 2 * body.shape->get_min().get_size();
 
             sf::VertexArray quad(sf::Quads, 4);
-
-
             sf::RectangleShape obb(sf::Vector2f(width,height));
             obb.setOrigin(width/2, height/2);
-            obb.move(body.get_position().x, h - body.get_position().y);
-            obb.rotate(body.get_shape().get_orient() *  180/M_PI);
+            obb.move(body.render_position.x, h - body.render_position.y);
+            obb.rotate(body.shape->get_orient() *  180/M_PI);
             obb.setFillColor(sf::Color::Black);
             obb.setOutlineColor(sf::Color::White);
 
             obb.setOutlineThickness(-3.f);
             window.draw(obb);
-
-
         }
     }
 }
@@ -89,8 +69,10 @@ int main() {
     font.loadFromFile("arial.ttf");
     sf::Text body_number;
     body_number.setFont(font);
+
     State state{w, h};
     state.reset();
+
     bool added = false;
     bool added_box = false;
 
@@ -154,7 +136,7 @@ int main() {
         window.clear(sf::Color::Black);
       draw_state(window,state);
 
-      body_number.setString(std::to_string(state.get_bodies().size()));
+      body_number.setString(std::to_string(state.get_size()));
       body_number.setFillColor(sf::Color::White);
       window.draw(body_number);
 
