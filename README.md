@@ -7,4 +7,5 @@ https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics
 https://github.com/tutsplus/ImpulseEngine
 https://github.com/erincatto/box2d-lite
 
+Click on picture below to view video:
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/HL1ZocYhDBE/0.jpg)](https://www.youtube.com/watch?v=HL1ZocYhDBE "Video Title")
